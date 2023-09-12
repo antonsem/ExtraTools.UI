@@ -1,0 +1,14 @@
+﻿{
+  "name": "com.ui.extratools",
+  "displayName": "ExtraTools.UI",
+  "version": "1.0.0",
+  "author": {
+    "name": "Anton Semchenko",
+    "email": "semchenkoanton@pm.me",
+    "url": "https://anton.website"
+  },
+  "description": "A UI Package",
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6"
+  }
+}
