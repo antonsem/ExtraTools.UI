@@ -7,20 +7,20 @@ namespace ExtraTools.UI.Widget
 {
 	public abstract class WidgetUIBase : MonoBehaviour
 	{
-		[SerializeField] protected Canvas canvas;
-		[SerializeField] protected TMP_Text text;
-		[SerializeField] private Button button;
+		[SerializeField] protected Canvas _canvas;
+		[SerializeField] protected TMP_Text _text;
+		[SerializeField] private Button _button;
 
 		protected WidgetBase Widget;
 
 		protected virtual void OnEnable()
 		{
-			button.onClick.AddListener(OnClick);
+			_button.onClick.AddListener(OnClick);
 		}
 
 		protected virtual void OnDisable()
 		{
-			button.onClick.RemoveAllListeners();
+			_button.onClick.RemoveAllListeners();
 		}
 
 		protected virtual void OnClick()
@@ -35,10 +35,10 @@ namespace ExtraTools.UI.Widget
 
 		protected internal virtual async Task ShowAsync(WidgetTask task)
 		{
-			text.text = task.Text;
-			canvas.enabled = true;
+			_text.text = task.Text;
+			_canvas.enabled = true;
 			await Task.Delay((int)(1000 * task.ShowTime));
-			canvas.enabled = false;
+			_canvas.enabled = false;
 		}
 	}
 }

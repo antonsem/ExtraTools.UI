@@ -5,7 +5,7 @@ namespace ExtraTools.UI.Panel
 {
 	public abstract class PanelUIBase : MonoBehaviour
 	{
-		[SerializeField] protected Canvas canvas;
+		[SerializeField] protected Canvas _canvas;
 
 		protected PanelBase PanelBase;
 
@@ -16,14 +16,26 @@ namespace ExtraTools.UI.Panel
 
 		protected internal virtual async Task ShowAsync()
 		{
-			canvas.enabled = true;
+			_canvas.enabled = true;
 			await Task.CompletedTask;
 		}
 
 		protected internal virtual async Task HideAsync()
 		{
-			canvas.enabled = false;
+			_canvas.enabled = false;
 			await Task.CompletedTask;
 		}
+
+#if UNITY_EDITOR
+		internal void SetPanelUI()
+		{
+			_canvas = GetComponent<Canvas>();
+		}
+
+		private void Reset()
+		{
+			SetPanelUI();
+		}
+#endif
 	}
 }

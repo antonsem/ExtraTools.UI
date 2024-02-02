@@ -6,7 +6,7 @@ namespace ExtraTools.UI.Screen
 	[RequireComponent(typeof(Canvas))]
 	public abstract class ScreenUIBase : MonoBehaviour
 	{
-		[SerializeField] private Canvas canvas;
+		[SerializeField] private Canvas _canvas;
 
 		protected ScreenBase ScreenBase;
 
@@ -17,14 +17,27 @@ namespace ExtraTools.UI.Screen
 
 		protected internal virtual async Task Show()
 		{
-			canvas.enabled = true;
+			_canvas.enabled = true;
 			await Task.CompletedTask;
 		}
 
 		protected internal virtual async Task Hide()
 		{
-			canvas.enabled = false;
+			_canvas.enabled = false;
 			await Task.CompletedTask;
 		}
+
+#if UNITY_EDITOR
+		[ContextMenu("Set Screen UI")]
+		internal void SetScreenUI()
+		{
+			_canvas = GetComponent<Canvas>();
+		}
+
+		private void Reset()
+		{
+			SetScreenUI();
+		}
+#endif
 	}
 }

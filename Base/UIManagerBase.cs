@@ -47,7 +47,7 @@ namespace ExtraTools.UI.Base
 				Initialize();
 			}
 
-			_screens.TryGetValue(typeof(T), out var val);
+			_screens.TryGetValue(typeof(T), out ScreenBase val);
 
 			if (!val)
 			{
@@ -65,7 +65,7 @@ namespace ExtraTools.UI.Base
 				Initialize();
 			}
 
-			_dialogs.TryGetValue(typeof(T), out var val);
+			_dialogs.TryGetValue(typeof(T), out DialogBase val);
 
 			if (!val)
 			{
@@ -83,7 +83,7 @@ namespace ExtraTools.UI.Base
 				Initialize();
 			}
 
-			_widgets.TryGetValue(typeof(T), out var val);
+			_widgets.TryGetValue(typeof(T), out WidgetBase val);
 
 			if (!val)
 			{
@@ -96,28 +96,28 @@ namespace ExtraTools.UI.Base
 
 		private void Initialize()
 		{
-			var screens = transform.GetComponentsInChildren<ScreenBase>();
+			ScreenBase[] screens = transform.GetComponentsInChildren<ScreenBase>();
 
 			_screens = new Dictionary<Type, ScreenBase>(screens.Length);
-			foreach (var screen in screens)
+			foreach (ScreenBase screen in screens)
 			{
 				screen.Initialize(this);
 				_screens.Add(screen.GetType(), screen);
 			}
 
-			var dialogs = transform.GetComponentsInChildren<DialogBase>();
+			DialogBase[] dialogs = transform.GetComponentsInChildren<DialogBase>();
 
 			_dialogs = new Dictionary<Type, DialogBase>(dialogs.Length);
-			foreach (var dialog in dialogs)
+			foreach (DialogBase dialog in dialogs)
 			{
 				dialog.Initialize(this);
 				_dialogs.Add(dialog.GetType(), dialog);
 			}
 
-			var widgets = transform.GetComponentsInChildren<WidgetBase>();
+			WidgetBase[] widgets = transform.GetComponentsInChildren<WidgetBase>();
 
 			_widgets = new Dictionary<Type, WidgetBase>(widgets.Length);
-			foreach (var widget in widgets)
+			foreach (WidgetBase widget in widgets)
 			{
 				widget.Initialize(this);
 				_widgets.Add(widget.GetType(), widget);
@@ -175,9 +175,9 @@ namespace ExtraTools.UI.Base
 
 		internal async Task HideAllDialogs()
 		{
-			var tasks = new Task[_activeDialogs.Count];
+			Task[] tasks = new Task[_activeDialogs.Count];
 
-			for (var i = 0; i < _activeDialogs.Count; i++)
+			for (int i = 0; i < _activeDialogs.Count; i++)
 			{
 				tasks[i] = _activeDialogs[i].HideAsync();
 			}

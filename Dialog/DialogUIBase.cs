@@ -10,12 +10,12 @@ namespace ExtraTools.UI.Dialog
 	public abstract class DialogUIBase : MonoBehaviour
 	{
 		internal Action OnClicked;
-		[SerializeField] protected Canvas canvas;
-		[SerializeField] private GameObject buttonPrefab;
-		[SerializeField] private TMP_Text message;
-		[SerializeField] private Transform buttonsParent;
+		[SerializeField] protected Canvas _canvas;
+		[SerializeField] private GameObject _buttonPrefab;
+		[SerializeField] private TMP_Text _message;
+		[SerializeField] private Transform _buttonsParent;
 
-		private readonly List<DialogAnswer> _okAnswer = new() { new DialogAnswer("OK", null) };
+		private readonly List<DialogAnswer> _okAnswer = new() { new DialogAnswer("OK") };
 
 		private readonly List<(Button, TMP_Text)> _buttons = new(2);
 
@@ -26,7 +26,7 @@ namespace ExtraTools.UI.Dialog
 
 		internal void Setup(string text, params DialogAnswer[] answers)
 		{
-			message.text = text;
+			_message.text = text;
 
 			if (answers != null)
 			{
@@ -45,7 +45,7 @@ namespace ExtraTools.UI.Dialog
 				AddButtons(answers.Count - _buttons.Count);
 			}
 
-			for (var i = 0; i < answers.Count; i++)
+			for (int i = 0; i < answers.Count; i++)
 			{
 				_buttons[i].Item1.onClick.AddListener(Clicked);
 				if (answers[i].Callback != null)
@@ -60,9 +60,9 @@ namespace ExtraTools.UI.Dialog
 
 		private void AddButtons(int count)
 		{
-			for (var i = 0; i < count; i++)
+			for (int i = 0; i < count; i++)
 			{
-				var button = Instantiate(buttonPrefab, buttonsParent);
+				GameObject button = Instantiate(_buttonPrefab, _buttonsParent);
 				button.transform.localScale = Vector3.one;
 				button.SetActive(false);
 				_buttons.Add((button.GetComponent<Button>(), button.GetComponentInChildren<TMP_Text>()));
@@ -76,7 +76,7 @@ namespace ExtraTools.UI.Dialog
 
 		private void ClearButtons()
 		{
-			foreach (var (button, _) in _buttons)
+			foreach ((Button button, TMP_Text _) in _buttons)
 			{
 				button.onClick.RemoveAllListeners();
 				button.gameObject.SetActive(false);
@@ -85,14 +85,14 @@ namespace ExtraTools.UI.Dialog
 
 		protected internal virtual async Task ShowAsync()
 		{
-			canvas.enabled = true;
+			_canvas.enabled = true;
 			await Task.CompletedTask;
 		}
 
 		protected internal virtual async Task HideAsync()
 		{
 			ClearButtons();
-			canvas.enabled = false;
+			_canvas.enabled = false;
 			await Task.CompletedTask;
 		}
 	}

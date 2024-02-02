@@ -6,7 +6,7 @@ namespace ExtraTools.UI.Dialog
 {
 	public abstract class DialogBase : MonoBehaviour
 	{
-		[SerializeField] protected DialogUIBase dialogUI;
+		[SerializeField] protected DialogUIBase _dialogUI;
 
 		protected UIManagerBase UIManager;
 
@@ -14,12 +14,12 @@ namespace ExtraTools.UI.Dialog
 
 		private void OnEnable()
 		{
-			dialogUI.OnClicked += OnClicked;
+			_dialogUI.OnClicked += OnClicked;
 		}
 
 		private void OnDisable()
 		{
-			dialogUI.OnClicked -= OnClicked;
+			_dialogUI.OnClicked -= OnClicked;
 		}
 
 		#endregion
@@ -31,18 +31,18 @@ namespace ExtraTools.UI.Dialog
 
 		public virtual void Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false)
 		{
-			dialogUI.Setup(message, answers);
+			_dialogUI.Setup(message, answers);
 			UIManager.ShowDialog(this, hideOtherDialogs);
 		}
 
 		protected internal virtual async Task ShowAsync()
 		{
-			await dialogUI.ShowAsync();
+			await _dialogUI.ShowAsync();
 		}
 
 		protected internal virtual async Task HideAsync()
 		{
-			await dialogUI.HideAsync();
+			await _dialogUI.HideAsync();
 		}
 
 		protected virtual void OnClicked()

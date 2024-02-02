@@ -7,7 +7,7 @@ namespace ExtraTools.UI.Widget
 {
 	public abstract class WidgetBase : MonoBehaviour
 	{
-		[SerializeField] private WidgetUIBase widgetUI;
+		[SerializeField] private WidgetUIBase _widgetUI;
 
 		protected UIManagerBase UIManager;
 		private Action _callback;
@@ -15,7 +15,7 @@ namespace ExtraTools.UI.Widget
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
-			widgetUI.Initialize(this);
+			_widgetUI.Initialize(this);
 		}
 
 		public virtual void Show(string text, float showTime = 1, Action callback = null)
@@ -26,7 +26,7 @@ namespace ExtraTools.UI.Widget
 		protected internal virtual async Task ShowAsync(WidgetTask task)
 		{
 			_callback = task.Callback;
-			await widgetUI.ShowAsync(task);
+			await _widgetUI.ShowAsync(task);
 		}
 
 		protected internal virtual void OnClick()
