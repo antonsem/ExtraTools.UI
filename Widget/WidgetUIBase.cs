@@ -40,5 +40,15 @@ namespace ExtraTools.UI.Widget
 			await Task.Delay((int)(1000 * task.ShowTime));
 			_canvas.enabled = false;
 		}
+
+#if UNITY_EDITOR
+		[ContextMenu("Set Widget UI")]
+		internal void SetWidgetUI()
+		{
+			_canvas = GetComponent<Canvas>();
+			_text = GetComponentInChildren<TMP_Text>();
+			_button = GetComponentInChildren<Button>();
+		}
+#endif
 	}
 }

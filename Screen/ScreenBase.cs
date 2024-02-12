@@ -28,7 +28,7 @@ namespace ExtraTools.UI.Screen
 				panel.Initialize(this);
 			}
 
-			if(_panels?.Length > 0)
+			if (_panels?.Length > 0)
 			{
 				ShowPanelAsync(_panels[0]);
 			}
@@ -38,7 +38,7 @@ namespace ExtraTools.UI.Screen
 		{
 			await UIManager.ShowScreen(this);
 
-			if(_panels?.Length > 0)
+			if (_panels?.Length > 0)
 			{
 				ShowPanelAsync(_panels[0]);
 			}
@@ -63,12 +63,12 @@ namespace ExtraTools.UI.Screen
 
 		protected virtual async void ShowPanelAsync<T>() where T : PanelBase
 		{
-			if(_activePanel)
+			if (_activePanel)
 			{
 				await _activePanel.HideAsync();
 			}
 
-			if(_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
+			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
 			{
 				ShowPanelAsync(panel);
 			}
@@ -109,11 +109,6 @@ namespace ExtraTools.UI.Screen
 			{
 				panel.SetPanel();
 			}
-		}
-
-		private void Reset()
-		{
-			SetScreen();
 		}
 #endif
 	}

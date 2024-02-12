@@ -31,11 +31,6 @@ namespace ExtraTools.UI.Panel
 		{
 			_canvas = GetComponent<Canvas>();
 		}
-
-		private void Reset()
-		{
-			SetPanelUI();
-		}
 #endif
 	}
 }

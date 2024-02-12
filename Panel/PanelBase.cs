@@ -32,11 +32,6 @@ namespace ExtraTools.UI.Panel
 			_panelUI = GetComponent<PanelUIBase>();
 			_panelUI.SetPanelUI();
 		}
-
-		private void Reset()
-		{
-			SetPanel();
-		}
 #endif
 	}
 }

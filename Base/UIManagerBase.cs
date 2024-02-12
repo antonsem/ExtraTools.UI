@@ -213,5 +213,41 @@ namespace ExtraTools.UI.Base
 				PlayWidgetQueue();
 			}
 		}
+
+#if UNITY_EDITOR
+		[ContextMenu("Reset UI")]
+		private void SetUI()
+		{
+			ScreenBase[] screens = GetComponentsInChildren<ScreenBase>();
+
+			if (screens.Length > 0)
+			{
+				foreach (ScreenBase screen in screens)
+				{
+					screen.SetScreen();
+				}
+			}
+
+			DialogBase[] dialogs = GetComponentsInChildren<DialogBase>();
+
+			if (dialogs.Length > 0)
+			{
+				foreach (DialogBase dialog in dialogs)
+				{
+					dialog.SetDialog();
+				}
+			}
+
+			WidgetBase[] widgets = GetComponentsInChildren<WidgetBase>();
+
+			if (widgets.Length > 0)
+			{
+				foreach (WidgetBase widget in widgets)
+				{
+					widget.SetWidget();
+				}
+			}
+		}
+#endif
 	}
 }
