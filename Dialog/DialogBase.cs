@@ -12,12 +12,12 @@ namespace ExtraTools.UI.Dialog
 
 		#region Unity Methods
 
-		private void OnEnable()
+		protected virtual void OnEnable()
 		{
 			_dialogUI.OnClicked += OnClicked;
 		}
 
-		private void OnDisable()
+		protected virtual void OnDisable()
 		{
 			_dialogUI.OnClicked -= OnClicked;
 		}

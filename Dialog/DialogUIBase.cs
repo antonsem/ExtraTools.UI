@@ -19,7 +19,7 @@ namespace ExtraTools.UI.Dialog
 
 		private readonly List<(Button, TMP_Text)> _buttons = new(2);
 
-		private void OnDisable()
+		protected virtual void OnDisable()
 		{
 			ClearButtons();
 		}

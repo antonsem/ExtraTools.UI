@@ -34,8 +34,7 @@ namespace ExtraTools.UI.Base
 
 		#endregion
 
-
-		private void Awake()
+		protected virtual void Awake()
 		{
 			Initialize();
 		}

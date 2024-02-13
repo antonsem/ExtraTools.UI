@@ -33,11 +33,6 @@ namespace ExtraTools.UI.Screen
 		{
 			_canvas = GetComponent<Canvas>();
 		}
-
-		private void Reset()
-		{
-			SetScreenUI();
-		}
 #endif
 	}
 }
