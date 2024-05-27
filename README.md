@@ -1,7 +1,8 @@
 # ExtraTools.UI
 
 A UI system I find very useful. An example implementation can be found here:
-https://github.com/antonsem/extraTools.UI.Example.
+https://github.com/antonsem/extraTools.UI.Example. And here is a blog explaining
+my thought process: https://www.anton.website/ui-manager-a-better-one
 
 ## Summary
 
