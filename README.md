@@ -62,3 +62,41 @@ Requires a text and an answer option to set up.
 
 Represents a notification or a short message. Can be clicked on and has expiration time.
 Widget notifications can be stacked but will be shown sequentially.
+
+### Automatic Setup
+
+It is assumed that a `Screen` class lives next to its UI counterpart, and the UI
+counterpart is named `ScreenUI`.
+
+**Example**:
+```csharp
+using ExtraTools.UI.Screen;
+
+namespace Project.UI.Screens.MainMenuScreen
+{
+	public class MainMenuScreen : ScreenBase
+	{
+	}
+}
+```
+
+```csharp
+using ExtraTools.UI.Screen;
+
+namespace Project.UI.Screens.MainMenuScreen
+{
+	public class MainMenuScreenUI : ScreenUIBase
+	{
+	}
+}
+```
+
+If so, clicking on the `Set Screen` button on the `Screen` component will
+automatically
+
+1. Add the UI component
+2. Set UI's `Canvas` field
+3. Set the UI component to the `_screenUI` field
+
+The same goes for all components which require a UI counterpart. Note that this
+is not mandatory and will not throw an error if not set as described.
