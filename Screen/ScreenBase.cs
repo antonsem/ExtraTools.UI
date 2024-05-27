@@ -11,8 +11,9 @@ namespace ExtraTools.UI.Screen
 	{
 		[SerializeField] protected ScreenUIBase _screenUI;
 		[SerializeField] protected PanelBase[] _panels;
+		[SerializeField] protected PanelBase[] _defaultPanels;
 
-		private PanelBase _activePanel;
+		private List<PanelBase> _activePanels;
 		protected UIManagerBase UIManager;
 
 		private Dictionary<Type, PanelBase> _panelsDictionary;
@@ -20,6 +21,7 @@ namespace ExtraTools.UI.Screen
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
+			_activePanels = new List<PanelBase>(_panels.Length);
 			_screenUI.Initialize(this);
 			_panelsDictionary = new Dictionary<Type, PanelBase>();
 			foreach (PanelBase panel in _panels)
@@ -28,50 +30,73 @@ namespace ExtraTools.UI.Screen
 				panel.Initialize(this);
 			}
 
-			if (_panels?.Length > 0)
-			{
-				ShowPanelAsync(_panels[0]);
-			}
+			ShowDefaultPanels();
 		}
 
 		public async void Show()
 		{
 			await UIManager.ShowScreen(this);
 
-			if (_panels?.Length > 0)
-			{
-				ShowPanelAsync(_panels[0]);
-			}
+			ShowDefaultPanels();
 		}
 
-		public async Task Hide()
+		public async void Hide()
 		{
 			await UIManager.HideScreen(this);
 		}
 
 		protected virtual async Task HidePanelsAsync()
 		{
-			List<Task> hideTasks = new(_panels.Length);
-
-			foreach (PanelBase panel in _panels)
+			if (_activePanels.Count == 0)
 			{
-				hideTasks.Add(panel.HideAsync());
+				return;
+			}
+
+			Task[] hideTasks = new Task[_activePanels.Count];
+
+			for (int i = 0; i < _activePanels.Count; i++)
+			{
+				hideTasks[i] = _activePanels[i].HideAsync();
 			}
 
 			await Task.WhenAll(hideTasks);
 		}
 
-		protected virtual async void ShowPanelAsync<T>() where T : PanelBase
+		protected virtual async Task ShowPanelAsync<T>(bool additive = false) where T : PanelBase
 		{
-			if (_activePanel)
-			{
-				await _activePanel.HideAsync();
-			}
-
 			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
 			{
-				ShowPanelAsync(panel);
+				await ShowPanelAsync(panel, additive);
 			}
+		}
+
+		protected virtual async Task ShowPanelAsync(PanelBase panelType, bool additive = false)
+		{
+			if (!additive && _activePanels.Count > 0)
+			{
+				Task[] hidePanels = new Task[_activePanels.Count];
+				for (int i = 0; i < _activePanels.Count; i++)
+				{
+					hidePanels[i] = _activePanels[i].HideAsync();
+				}
+
+				await Task.WhenAll(hidePanels);
+			}
+
+			await DoShowPanelAsync(panelType);
+		}
+
+		protected virtual async Task HidePanelAsync<T>() where T : PanelBase
+		{
+			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
+			{
+				await HidePanelAsync(panel);
+			}
+		}
+
+		protected virtual async Task HidePanelAsync(PanelBase panel)
+		{
+			await DoHidePanelAsync(panel);
 		}
 
 		protected T GetPanel<T>() where T : PanelBase
@@ -91,25 +116,39 @@ namespace ExtraTools.UI.Screen
 			await _screenUI.Hide();
 		}
 
-		private async void ShowPanelAsync(PanelBase panel)
+		private void ShowDefaultPanels()
 		{
-			await panel.ShowAsync();
-			_activePanel = panel;
-		}
-
-#if UNITY_EDITOR
-		[ContextMenu("Set Screen")]
-		internal void SetScreen()
-		{
-			_screenUI = GetComponent<ScreenUIBase>();
-			_screenUI.SetScreenUI();
-
-			_panels = transform.GetComponentsInChildren<PanelBase>();
-			foreach (PanelBase panel in _panels)
+			if (_panels?.Length > 0)
 			{
-				panel.SetPanel();
+				if (_defaultPanels?.Length > 0)
+				{
+					Task[] panelsToShow = new Task[_defaultPanels.Length];
+					for (int i = 0; i < _defaultPanels.Length; i++)
+					{
+						panelsToShow[i] = DoShowPanelAsync(_defaultPanels[i]);
+					}
+
+					Task.WaitAll(panelsToShow);
+				}
 			}
 		}
-#endif
+
+		private async Task DoShowPanelAsync(PanelBase panel)
+		{
+			await panel.ShowAsync();
+			if (!_activePanels.Contains(panel))
+			{
+				_activePanels.Add(panel);
+			}
+		}
+
+		private async Task DoHidePanelAsync(PanelBase panel)
+		{
+			await panel.HideAsync();
+			if (_activePanels.Contains(panel))
+			{
+				_activePanels.Remove(panel);
+			}
+		}
 	}
 }

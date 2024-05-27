@@ -26,13 +26,5 @@ namespace ExtraTools.UI.Screen
 			_canvas.enabled = false;
 			await Task.CompletedTask;
 		}
-
-#if UNITY_EDITOR
-		[ContextMenu("Set Screen UI")]
-		internal void SetScreenUI()
-		{
-			_canvas = GetComponent<Canvas>();
-		}
-#endif
 	}
 }

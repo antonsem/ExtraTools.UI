@@ -33,18 +33,5 @@ namespace ExtraTools.UI.Widget
 		{
 			_callback?.Invoke();
 		}
-
-#if UNITY_EDITOR
-		[ContextMenu("Set Widget")]
-		internal void SetWidget()
-		{
-			_widgetUI = GetComponent<WidgetUIBase>();
-
-			if (_widgetUI)
-			{
-				_widgetUI.SetWidgetUI();
-			}
-		}
-#endif
 	}
 }

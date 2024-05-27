@@ -49,18 +49,5 @@ namespace ExtraTools.UI.Dialog
 		{
 			UIManager.HideDialog(this);
 		}
-
-#if UNITY_EDITOR
-		[ContextMenu("Set Dialog")]
-		internal void SetDialog()
-		{
-			_dialogUI = GetComponent<DialogUIBase>();
-
-			if (_dialogUI)
-			{
-				_dialogUI.SetDialogUI();
-			}
-		}
-#endif
 	}
 }

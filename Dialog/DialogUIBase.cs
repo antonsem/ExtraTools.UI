@@ -95,13 +95,5 @@ namespace ExtraTools.UI.Dialog
 			_canvas.enabled = false;
 			await Task.CompletedTask;
 		}
-
-#if UNITY_EDITOR
-		[ContextMenu("Set Dialog UI")]
-		internal void SetDialogUI()
-		{
-			_canvas = GetComponent<Canvas>();
-		}
-#endif
 	}
 }

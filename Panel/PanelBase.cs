@@ -25,13 +25,5 @@ namespace ExtraTools.UI.Panel
 		{
 			await _panelUI.HideAsync();
 		}
-
-#if UNITY_EDITOR
-		internal void SetPanel()
-		{
-			_panelUI = GetComponent<PanelUIBase>();
-			_panelUI.SetPanelUI();
-		}
-#endif
 	}
 }

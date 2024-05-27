@@ -25,12 +25,5 @@ namespace ExtraTools.UI.Panel
 			_canvas.enabled = false;
 			await Task.CompletedTask;
 		}
-
-#if UNITY_EDITOR
-		internal void SetPanelUI()
-		{
-			_canvas = GetComponent<Canvas>();
-		}
-#endif
 	}
 }
