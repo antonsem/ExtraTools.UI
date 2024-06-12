@@ -36,8 +36,13 @@ namespace ExtraTools.UI.Screen
 		public async void Show()
 		{
 			await UIManager.ShowScreen(this);
+			await ShowDefaultPanels();
+		}
 
-			ShowDefaultPanels();
+		public async void Show<T>() where T : PanelBase
+		{
+			await UIManager.ShowScreen(this);
+			await ShowPanelAsync<T>();
 		}
 
 		public async void Hide()
@@ -116,7 +121,7 @@ namespace ExtraTools.UI.Screen
 			await _screenUI.Hide();
 		}
 
-		private void ShowDefaultPanels()
+		private Task ShowDefaultPanels()
 		{
 			if (_panels?.Length > 0)
 			{
@@ -128,9 +133,11 @@ namespace ExtraTools.UI.Screen
 						panelsToShow[i] = DoShowPanelAsync(_defaultPanels[i]);
 					}
 
-					Task.WaitAll(panelsToShow);
+					return Task.WhenAll(panelsToShow);
 				}
 			}
+
+			return Task.CompletedTask;
 		}
 
 		private async Task DoShowPanelAsync(PanelBase panel)
