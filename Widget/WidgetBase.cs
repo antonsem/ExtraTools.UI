@@ -7,7 +7,7 @@ namespace ExtraTools.UI.Widget
 {
 	public abstract class WidgetBase : MonoBehaviour
 	{
-		[SerializeField] private WidgetUIBase _widgetUI;
+		[SerializeField] protected WidgetUIBase _widgetUI;
 
 		protected UIManagerBase UIManager;
 		private Action _callback;
