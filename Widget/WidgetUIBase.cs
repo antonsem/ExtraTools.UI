@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,7 +38,8 @@ namespace ExtraTools.UI.Widget
 		{
 			_text.text = task.Text;
 			_canvas.enabled = true;
-			await Task.Delay((int)(1000 * task.ShowTime));
+			CancellationTokenSource cts = new ();
+			await Task.Delay((int)(1000 * task.ShowTime), cts.Token);
 			_canvas.enabled = false;
 		}
 	}
