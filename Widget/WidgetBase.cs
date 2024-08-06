@@ -10,7 +10,7 @@ namespace ExtraTools.UI.Widget
 		[SerializeField] protected WidgetUIBase _widgetUI;
 
 		protected UIManagerBase UIManager;
-		private Action _callback;
+		private WidgetTask _task;
 
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
@@ -25,13 +25,24 @@ namespace ExtraTools.UI.Widget
 
 		protected internal virtual async Task ShowAsync(WidgetTask task)
 		{
-			_callback = task.Callback;
+			_task = task;
 			await _widgetUI.ShowAsync(task);
+
+			try
+			{
+				await Task.Delay((int)(1000 * task.ShowTime), task.CancellationToken);
+			}
+			catch (TaskCanceledException)
+			{
+			}
+
+			await _widgetUI.HideAsync();
 		}
 
 		protected internal virtual void OnClick()
 		{
-			_callback?.Invoke();
+			_task.Callback?.Invoke();
+			_task.StopTask();
 		}
 	}
 }

@@ -33,12 +33,18 @@ namespace ExtraTools.UI.Widget
 			Widget = widget;
 		}
 
-		protected internal virtual async Task ShowAsync(WidgetTask task)
+		protected internal virtual Task ShowAsync(WidgetTask task)
 		{
 			_text.text = task.Text;
 			_canvas.enabled = true;
-			await Task.Delay((int)(1000 * task.ShowTime), task.CancellationToken);
+
+			return Task.CompletedTask;
+		}
+
+		protected internal virtual Task HideAsync()
+		{
 			_canvas.enabled = false;
+			return Task.CompletedTask;
 		}
 	}
 }
