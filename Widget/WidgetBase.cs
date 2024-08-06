@@ -42,7 +42,6 @@ namespace ExtraTools.UI.Widget
 		protected internal virtual void OnClick()
 		{
 			_task.Callback?.Invoke();
-			_task.StopTask();
 		}
 	}
 }
