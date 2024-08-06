@@ -191,9 +191,15 @@ namespace ExtraTools.UI.Base
 			PlayWidgetQueue();
 		}
 
-		internal void HideAllWidgets()
+		protected void HideActiveWidget()
+		{
+			_activeWidget?.StopTask();
+		}
+
+		protected void HideAllWidgets()
 		{
 			_widgetQueue.Clear();
+			HideActiveWidget();
 		}
 
 		private async void PlayWidgetQueue()

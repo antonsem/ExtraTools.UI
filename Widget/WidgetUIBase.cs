@@ -37,7 +37,7 @@ namespace ExtraTools.UI.Widget
 		{
 			_text.text = task.Text;
 			_canvas.enabled = true;
-			await Task.Delay((int)(1000 * task.ShowTime));
+			await Task.Delay((int)(1000 * task.ShowTime), task.CancellationToken);
 			_canvas.enabled = false;
 		}
 	}
