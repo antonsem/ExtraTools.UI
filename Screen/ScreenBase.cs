@@ -110,12 +110,12 @@ namespace ExtraTools.UI.Screen
 			return panel as T;
 		}
 
-		internal async Task ShowAsync()
+		internal virtual async Task ShowAsync()
 		{
 			await _screenUI.Show();
 		}
 
-		internal async Task HideAsync()
+		internal virtual async Task HideAsync()
 		{
 			await HidePanelsAsync();
 			await _screenUI.Hide();
