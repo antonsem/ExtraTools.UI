@@ -39,6 +39,11 @@ namespace ExtraTools.UI.Base
 			Initialize();
 		}
 
+		protected void OnDestroy()
+		{
+			HideAllWidgets();
+		}
+
 		public T GetScreen<T>() where T : ScreenBase
 		{
 			if (!_isInitialized)
