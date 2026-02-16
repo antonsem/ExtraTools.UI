@@ -9,6 +9,6 @@
   },
   "description": "A UI Package",
   "dependencies": {
-    "com.unity.textmeshpro": "3.0.8"
+    "com.unity.ugui": "2.0.0"
   }
 }

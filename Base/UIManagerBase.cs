@@ -14,10 +14,13 @@ namespace ExtraTools.UI.Base
 		private Dictionary<Type, DialogBase> _dialogs;
 		private Dictionary<Type, WidgetBase> _widgets;
 
-		private ScreenBase _activeScreen;
 		private readonly List<DialogBase> _activeDialogs = new();
 		private readonly Queue<WidgetTask> _widgetQueue = new();
-		private WidgetTask _activeWidget;
+
+		public ScreenBase ActiveScreen { get; private set; }
+		public WidgetTask ActiveWidget { get; private set; }
+
+		public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
 
 		private bool _isInitialized;
 
@@ -39,9 +42,14 @@ namespace ExtraTools.UI.Base
 			Initialize();
 		}
 
-		protected void OnDestroy()
+		protected virtual void OnDestroy()
 		{
 			HideAllWidgets();
+		}
+
+		public bool IsDialogActive(DialogBase dialog)
+		{
+			return _activeDialogs.Contains(dialog);
 		}
 
 		public T GetScreen<T>() where T : ScreenBase
@@ -132,22 +140,22 @@ namespace ExtraTools.UI.Base
 
 		internal async Task ShowScreen(ScreenBase screen)
 		{
-			if (_activeScreen != null)
+			if (ActiveScreen != null)
 			{
-				await _activeScreen.HideAsync();
+				await ActiveScreen.HideAsync();
 			}
 
 			await screen.ShowAsync();
-			_activeScreen = screen;
+			ActiveScreen = screen;
 		}
 
 		internal async Task HideScreen(ScreenBase screen)
 		{
 			await screen.HideAsync();
 
-			if (screen == _activeScreen)
+			if (screen == ActiveScreen)
 			{
-				_activeScreen = null;
+				ActiveScreen = null;
 			}
 		}
 
@@ -198,7 +206,7 @@ namespace ExtraTools.UI.Base
 
 		protected void HideActiveWidget()
 		{
-			_activeWidget?.StopTask();
+			ActiveWidget?.StopTask();
 		}
 
 		protected void HideAllWidgets()
@@ -209,14 +217,14 @@ namespace ExtraTools.UI.Base
 
 		private async void PlayWidgetQueue()
 		{
-			if (_activeWidget != null)
+			if (ActiveWidget != null)
 			{
 				return;
 			}
 
-			_activeWidget = _widgetQueue.Dequeue();
-			await _activeWidget.Base.ShowAsync(_activeWidget);
-			_activeWidget = null;
+			ActiveWidget = _widgetQueue.Dequeue();
+			await ActiveWidget.Base.ShowAsync(ActiveWidget);
+			ActiveWidget = null;
 
 			if (_widgetQueue.Count > 0)
 			{
