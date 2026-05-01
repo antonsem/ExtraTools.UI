@@ -13,8 +13,9 @@ namespace ExtraTools.UI.Screen
 		[SerializeField] protected PanelBase[] _panels;
 		[SerializeField] protected PanelBase[] _defaultPanels;
 
-		private List<PanelBase> _activePanels;
 		protected UIManagerBase UIManager;
+		protected IReadOnlyList<PanelBase> ActivePanels => _activePanels;
+		private List<PanelBase> _activePanels;
 
 		private Dictionary<Type, PanelBase> _panelsDictionary;
 
@@ -65,6 +66,11 @@ namespace ExtraTools.UI.Screen
 			}
 
 			await Task.WhenAll(hideTasks);
+		}
+
+		protected bool IsPanelActive<T>() where T : PanelBase
+		{
+			return _activePanels.Contains(GetPanel<T>());
 		}
 
 		protected virtual async Task ShowPanelAsync<T>(bool additive = false) where T : PanelBase
