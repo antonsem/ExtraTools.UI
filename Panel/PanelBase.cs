@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Screen;
 using UnityEngine;
 
@@ -16,14 +17,14 @@ namespace ExtraTools.UI.Panel
 			_panelUI.Initialize(this);
 		}
 
-		protected internal virtual async Task ShowAsync()
+		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _panelUI.ShowAsync();
+			await _panelUI.ShowAsync(cancellationToken);
 		}
 
-		protected internal virtual async Task HideAsync()
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
-			await _panelUI.HideAsync();
+			await _panelUI.HideAsync(cancellationToken);
 		}
 	}
 }

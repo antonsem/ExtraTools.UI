@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using UnityEngine;
 
@@ -32,22 +32,22 @@ namespace ExtraTools.UI.Dialog
 		public virtual void Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false)
 		{
 			_dialogUI.Setup(message, answers);
-			UIManager.ShowDialog(this, hideOtherDialogs);
+			UIManager.ShowDialog(this, hideOtherDialogs).Forget();
 		}
 
-		protected internal virtual async Task ShowAsync()
+		protected internal virtual async UniTask ShowAsync()
 		{
 			await _dialogUI.ShowAsync();
 		}
 
-		protected internal virtual async Task HideAsync()
+		protected internal virtual async UniTask HideAsync()
 		{
 			await _dialogUI.HideAsync();
 		}
 
 		protected virtual void OnClicked()
 		{
-			UIManager.HideDialog(this);
+			UIManager.HideDialog(this).Forget();
 		}
 	}
 }

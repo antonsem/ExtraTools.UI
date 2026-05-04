@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using UnityEngine;
 
@@ -23,18 +24,14 @@ namespace ExtraTools.UI.Widget
 			UIManager.ShowWidget(new WidgetTask(this, text, showTime, callback));
 		}
 
-		protected internal virtual async Task ShowAsync(WidgetTask task)
+		protected internal virtual async UniTask ShowAsync(WidgetTask task,
+			CancellationToken cancellationToken = default)
 		{
 			_task = task;
 			await _widgetUI.ShowAsync(task);
 
-			try
-			{
-				await Task.Delay((int)(1000 * task.ShowTime), task.CancellationToken);
-			}
-			catch (TaskCanceledException)
-			{
-			}
+			await UniTask.Delay((int)(1000 * task.ShowTime), cancellationToken: cancellationToken)
+				.SuppressCancellationThrow();
 
 			await _widgetUI.HideAsync();
 		}

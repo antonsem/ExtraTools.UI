@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace ExtraTools.UI.Screen
@@ -15,16 +16,16 @@ namespace ExtraTools.UI.Screen
 			ScreenBase = screenBase;
 		}
 
-		protected internal virtual async Task Show()
+		protected internal virtual async UniTask Show(CancellationToken cancellationToken = default)
 		{
 			_canvas.enabled = true;
-			await Task.CompletedTask;
+			await UniTask.CompletedTask;
 		}
 
-		protected internal virtual async Task Hide()
+		protected internal virtual async UniTask Hide(CancellationToken cancellationToken = default)
 		{
 			_canvas.enabled = false;
-			await Task.CompletedTask;
+			await UniTask.CompletedTask;
 		}
 	}
 }

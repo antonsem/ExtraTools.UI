@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using ExtraTools.UI.Panel;
 using UnityEngine;
@@ -34,38 +35,46 @@ namespace ExtraTools.UI.Screen
 			ShowDefaultPanels();
 		}
 
-		public async void Show()
+		public async UniTask Show(CancellationToken cancellationToken = default)
 		{
-			await UIManager.ShowScreen(this);
-			await ShowDefaultPanels();
+			await UIManager.ShowScreen(this, cancellationToken);
+			await ShowDefaultPanels(cancellationToken);
 		}
 
-		public async void Show<T>() where T : PanelBase
+		public async UniTask Show<T>(bool additive, CancellationToken cancellationToken = default) where T : PanelBase
 		{
-			await UIManager.ShowScreen(this);
-			await ShowPanelAsync<T>();
+			await UIManager.ShowScreen(this, cancellationToken);
+			await ShowPanelAsync<T>(additive, cancellationToken: cancellationToken);
 		}
 
-		public async void Hide()
+		public async UniTask Hide<T>(CancellationToken cancellationToken) where T : PanelBase
 		{
-			await UIManager.HideScreen(this);
+			if (IsPanelActive<T>())
+			{
+				await HidePanelAsync<T>(cancellationToken);
+			}
 		}
 
-		protected virtual async Task HidePanelsAsync()
+		public async UniTask Hide(CancellationToken cancellationToken = default)
+		{
+			await UIManager.HideScreen(this, cancellationToken);
+		}
+
+		protected virtual async UniTask HidePanelsAsync(CancellationToken cancellationToken = default)
 		{
 			if (_activePanels.Count == 0)
 			{
 				return;
 			}
 
-			Task[] hideTasks = new Task[_activePanels.Count];
+			UniTask[] hideTasks = new UniTask[_activePanels.Count];
 
 			for (int i = 0; i < _activePanels.Count; i++)
 			{
-				hideTasks[i] = _activePanels[i].HideAsync();
+				hideTasks[i] = _activePanels[i].HideAsync(cancellationToken);
 			}
 
-			await Task.WhenAll(hideTasks);
+			await UniTask.WhenAll(hideTasks);
 		}
 
 		protected bool IsPanelActive<T>() where T : PanelBase
@@ -73,41 +82,44 @@ namespace ExtraTools.UI.Screen
 			return _activePanels.Contains(GetPanel<T>());
 		}
 
-		protected virtual async Task ShowPanelAsync<T>(bool additive = false) where T : PanelBase
+		protected virtual async UniTask ShowPanelAsync<T>(bool additive = false,
+			CancellationToken cancellationToken = default) where T : PanelBase
 		{
 			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
 			{
-				await ShowPanelAsync(panel, additive);
+				await ShowPanelAsync(panel, additive, cancellationToken);
 			}
 		}
 
-		protected virtual async Task ShowPanelAsync(PanelBase panelType, bool additive = false)
+		protected virtual async UniTask ShowPanelAsync(PanelBase panelType, bool additive = false,
+			CancellationToken cancellationToken = default)
 		{
 			if (!additive && _activePanels.Count > 0)
 			{
-				Task[] hidePanels = new Task[_activePanels.Count];
+				UniTask[] hidePanels = new UniTask[_activePanels.Count];
 				for (int i = 0; i < _activePanels.Count; i++)
 				{
-					hidePanels[i] = _activePanels[i].HideAsync();
+					hidePanels[i] = _activePanels[i].HideAsync(cancellationToken);
 				}
 
-				await Task.WhenAll(hidePanels);
+				await UniTask.WhenAll(hidePanels);
 			}
 
-			await DoShowPanelAsync(panelType);
+			await DoShowPanelAsync(panelType, cancellationToken);
 		}
 
-		protected virtual async Task HidePanelAsync<T>() where T : PanelBase
+		protected virtual async UniTask HidePanelAsync<T>(CancellationToken cancellationToken = default)
+			where T : PanelBase
 		{
 			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
 			{
-				await HidePanelAsync(panel);
+				await HidePanelAsync(panel, cancellationToken);
 			}
 		}
 
-		protected virtual async Task HidePanelAsync(PanelBase panel)
+		protected virtual async UniTask HidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
-			await DoHidePanelAsync(panel);
+			await DoHidePanelAsync(panel, cancellationToken);
 		}
 
 		protected T GetPanel<T>() where T : PanelBase
@@ -116,48 +128,48 @@ namespace ExtraTools.UI.Screen
 			return panel as T;
 		}
 
-		protected internal virtual async Task ShowAsync()
+		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _screenUI.Show();
+			await _screenUI.Show(cancellationToken);
 		}
 
-		protected internal virtual async Task HideAsync()
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
-			await HidePanelsAsync();
-			await _screenUI.Hide();
+			await HidePanelsAsync(cancellationToken);
+			await _screenUI.Hide(cancellationToken);
 		}
 
-		private Task ShowDefaultPanels()
+		private UniTask ShowDefaultPanels(CancellationToken cancellationToken = default)
 		{
 			if (_panels?.Length > 0)
 			{
 				if (_defaultPanels?.Length > 0)
 				{
-					Task[] panelsToShow = new Task[_defaultPanels.Length];
+					UniTask[] panelsToShow = new UniTask[_defaultPanels.Length];
 					for (int i = 0; i < _defaultPanels.Length; i++)
 					{
-						panelsToShow[i] = DoShowPanelAsync(_defaultPanels[i]);
+						panelsToShow[i] = DoShowPanelAsync(_defaultPanels[i], cancellationToken);
 					}
 
-					return Task.WhenAll(panelsToShow);
+					return UniTask.WhenAll(panelsToShow);
 				}
 			}
 
-			return Task.CompletedTask;
+			return UniTask.CompletedTask;
 		}
 
-		private async Task DoShowPanelAsync(PanelBase panel)
+		private async UniTask DoShowPanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
-			await panel.ShowAsync();
+			await panel.ShowAsync(cancellationToken);
 			if (!_activePanels.Contains(panel))
 			{
 				_activePanels.Add(panel);
 			}
 		}
 
-		private async Task DoHidePanelAsync(PanelBase panel)
+		private async UniTask DoHidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
-			await panel.HideAsync();
+			await panel.HideAsync(cancellationToken);
 			if (_activePanels.Contains(panel))
 			{
 				_activePanels.Remove(panel);

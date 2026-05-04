@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -83,17 +84,17 @@ namespace ExtraTools.UI.Dialog
 			}
 		}
 
-		protected internal virtual async Task ShowAsync()
+		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
 			_canvas.enabled = true;
-			await Task.CompletedTask;
+			await UniTask.CompletedTask;
 		}
 
-		protected internal virtual async Task HideAsync()
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			ClearButtons();
 			_canvas.enabled = false;
-			await Task.CompletedTask;
+			await UniTask.CompletedTask;
 		}
 	}
 }

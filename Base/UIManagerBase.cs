@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Dialog;
 using ExtraTools.UI.Screen;
 using ExtraTools.UI.Widget;
@@ -26,13 +27,13 @@ namespace ExtraTools.UI.Base
 
 		#region Constants
 
-		private const string NO_SCREEN_ERROR =
+		private const string NoScreenError =
 			"<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
 
-		private const string NO_DIALOG_ERROR =
+		private const string NoDialogError =
 			"<b>{0}</b> <color=red>does not have</color> a dialog of type <b>{1}</b>!";
 
-		private const string NO_WIDGET_ERROR =
+		private const string NoWidgetError =
 			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
 
 		#endregion
@@ -63,7 +64,7 @@ namespace ExtraTools.UI.Base
 
 			if (!val)
 			{
-				Debug.LogError(string.Format(NO_SCREEN_ERROR, name, typeof(T)), this);
+				Debug.LogError(string.Format(NoScreenError, name, typeof(T)), this);
 				return null;
 			}
 
@@ -81,7 +82,7 @@ namespace ExtraTools.UI.Base
 
 			if (!val)
 			{
-				Debug.LogError(string.Format(NO_DIALOG_ERROR, name, typeof(T)), this);
+				Debug.LogError(string.Format(NoDialogError, name, typeof(T)), this);
 				return null;
 			}
 
@@ -99,7 +100,7 @@ namespace ExtraTools.UI.Base
 
 			if (!val)
 			{
-				Debug.LogError(string.Format(NO_WIDGET_ERROR, name, typeof(T)), this);
+				Debug.LogError(string.Format(NoWidgetError, name, typeof(T)), this);
 				return null;
 			}
 
@@ -138,9 +139,9 @@ namespace ExtraTools.UI.Base
 			_isInitialized = true;
 		}
 
-		internal async Task ShowScreen(ScreenBase screen)
+		internal async UniTask ShowScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
-			if (ActiveScreen != null)
+			if (ActiveScreen)
 			{
 				await ActiveScreen.HideAsync();
 			}
@@ -149,7 +150,7 @@ namespace ExtraTools.UI.Base
 			ActiveScreen = screen;
 		}
 
-		internal async Task HideScreen(ScreenBase screen)
+		internal async UniTask HideScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
 			await screen.HideAsync();
 
@@ -159,7 +160,7 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
-		internal async void ShowDialog(DialogBase dialog, bool hideRest = true)
+		internal async UniTask ShowDialog(DialogBase dialog, bool hideRest = true)
 		{
 			if (hideRest)
 			{
@@ -171,7 +172,7 @@ namespace ExtraTools.UI.Base
 			_activeDialogs.Add(dialog);
 		}
 
-		internal async void HideDialog(DialogBase dialog)
+		internal async UniTask HideDialog(DialogBase dialog)
 		{
 			await dialog.HideAsync();
 
@@ -185,23 +186,23 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
-		internal async Task HideAllDialogs()
+		internal async UniTask HideAllDialogs()
 		{
-			Task[] tasks = new Task[_activeDialogs.Count];
+			UniTask[] tasks = new UniTask[_activeDialogs.Count];
 
 			for (int i = 0; i < _activeDialogs.Count; i++)
 			{
 				tasks[i] = _activeDialogs[i].HideAsync();
 			}
 
-			await Task.WhenAll(tasks);
+			await UniTask.WhenAll(tasks);
 			_activeDialogs.Clear();
 		}
 
 		internal void ShowWidget(WidgetTask task)
 		{
 			_widgetQueue.Enqueue(task);
-			PlayWidgetQueue();
+			PlayWidgetQueue().Forget();
 		}
 
 		protected void HideActiveWidget()
@@ -215,7 +216,7 @@ namespace ExtraTools.UI.Base
 			HideActiveWidget();
 		}
 
-		private async void PlayWidgetQueue()
+		private async UniTask PlayWidgetQueue()
 		{
 			if (ActiveWidget != null)
 			{
@@ -228,7 +229,7 @@ namespace ExtraTools.UI.Base
 
 			if (_widgetQueue.Count > 0)
 			{
-				PlayWidgetQueue();
+				PlayWidgetQueue().Forget();
 			}
 		}
 	}

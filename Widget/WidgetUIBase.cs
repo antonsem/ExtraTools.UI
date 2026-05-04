@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,18 +34,18 @@ namespace ExtraTools.UI.Widget
 			Widget = widget;
 		}
 
-		protected internal virtual Task ShowAsync(WidgetTask task)
+		protected internal virtual UniTask ShowAsync(WidgetTask task, CancellationToken cancellationToken = default)
 		{
 			_text.text = task.Text;
 			_canvas.enabled = true;
 
-			return Task.CompletedTask;
+			return UniTask.CompletedTask;
 		}
 
-		protected internal virtual Task HideAsync()
+		protected internal virtual UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			_canvas.enabled = false;
-			return Task.CompletedTask;
+			return UniTask.CompletedTask;
 		}
 	}
 }
