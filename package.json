@@ -1,7 +1,7 @@
 ﻿{
   "name": "com.extratools.ui",
   "displayName": "ExtraTools.UI",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": {
     "name": "Anton Semchenko",
     "email": "semchenkoanton@pm.me",
@@ -9,7 +9,6 @@
   },
   "description": "A UI Package",
   "dependencies": {
-    "com.unity.ugui": "2.0.0",
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git#v1.3.0"
+    "com.unity.ugui": "2.0.0"
   }
 }
