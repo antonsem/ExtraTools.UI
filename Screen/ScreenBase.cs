@@ -97,9 +97,10 @@ namespace ExtraTools.UI.Screen
 			if (!additive && _activePanels.Count > 0)
 			{
 				UniTask[] hidePanels = new UniTask[_activePanels.Count];
-				for (int i = 0; i < _activePanels.Count; i++)
+				for (int i = _activePanels.Count - 1; i >= 0; i--)
 				{
 					hidePanels[i] = _activePanels[i].HideAsync(cancellationToken);
+					_activePanels.RemoveAt(i);
 				}
 
 				await UniTask.WhenAll(hidePanels);
