@@ -11,6 +11,9 @@ and the data while providing easy access to every screen. This package does not 
 any implementations, only abstract base classes. The basic functionality, such as showing
 or hiding screens, is provided by the base classes.
 
+## Dependencies
+This package depends on [UniTask 2.5.10](https://github.com/Cysharp/UniTask/tree/2.5.10#install-via-git-url)
+
 ## Documentation
 
 ### UI Manager
