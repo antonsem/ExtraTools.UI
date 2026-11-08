@@ -33,6 +33,11 @@ namespace ExtraTools.UI.Widget
 			await UniTask.Delay((int)(1000 * task.ShowTime), cancellationToken: cancellationToken)
 				.SuppressCancellationThrow();
 
+			if (!_widgetUI)
+			{
+				return;
+			}
+
 			await _widgetUI.HideAsync();
 		}
 

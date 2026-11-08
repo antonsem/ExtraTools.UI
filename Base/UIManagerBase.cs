@@ -224,7 +224,7 @@ namespace ExtraTools.UI.Base
 			}
 
 			ActiveWidget = _widgetQueue.Dequeue();
-			await ActiveWidget.Base.ShowAsync(ActiveWidget);
+			await ActiveWidget.Base.ShowAsync(ActiveWidget, ActiveWidget.CancellationToken);
 			ActiveWidget = null;
 
 			if (_widgetQueue.Count > 0)

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - A dialog re-shown with `hideOtherDialogs` while already open lost its buttons
+- Stopping a widget had no effect, and a widget outliving its scene threw a `MissingReferenceException`
 
 ## [2.0.2] - 2026-05-04
 
