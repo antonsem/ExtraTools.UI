@@ -6,17 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.0.2] - 2026-05-04
-- Fixed a bug when adding a non-additive panel doesn't remove other panels.
+
+### Fixed
+- A bug when adding a non-additive panel doesn't remove other panels
 
 ## [2.0.1] - 2026-05-04
-- Removed the UniTask plugin. It needs to be added manually.
+
+### Removed
+- The UniTask plugin. It needs to be added manually
 
 ## [2.0.0] - 2026-05-01
+
+### Changed
 - Replaced Tasks with UniTasks
 
 ## [1.4.0] - 2026-05-01
+
+### Added
 - Exposed active panels
-- Added a method to check if a panel is active
+- A method to check if a panel is active
 
 ## [1.3.0] - 2026-02-16
 
