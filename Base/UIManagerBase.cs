@@ -20,6 +20,7 @@ namespace ExtraTools.UI.Base
 		private const string NoWidgetError =
 			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
 		private readonly List<DialogBase> _activeDialogs = new();
+		private readonly SemaphoreSlim _dialogTransition = new(1, 1);
 		private readonly SemaphoreSlim _screenTransition = new(1, 1);
 		private readonly Queue<WidgetTask> _widgetQueue = new();
 		private Dictionary<Type, DialogBase> _dialogs;
@@ -197,39 +198,60 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
-		internal async UniTask ShowDialog(DialogBase dialog, bool hideRest = true)
+		internal async UniTask ShowDialog(DialogBase dialog, Action setup, bool hideRest)
 		{
-			if (hideRest)
+			// One at a time, and hiding the rest shares the turn with the show: otherwise two calls that each hide the
+			// others would interleave and leave both dialogs open.
+			await _dialogTransition.WaitAsync();
+
+			try
 			{
-				await HideAllDialogs();
+				if (hideRest)
+				{
+					await HideAllDialogs();
+				}
+
+				// After the hide, because hiding clears a dialog's buttons and this dialog may be one of those hidden.
+				setup();
+				dialog.transform.SetAsLastSibling();
+
+				if (_activeDialogs.Contains(dialog))
+				{
+					return;
+				}
+
+				// Added before the await so that a failed show can still be hidden later.
+				_activeDialogs.Add(dialog);
+				await dialog.ShowAsync();
 			}
-
-			dialog.transform.SetAsLastSibling();
-
-			if (_activeDialogs.Contains(dialog))
+			finally
 			{
-				return;
+				_dialogTransition.Release();
 			}
-
-			await dialog.ShowAsync();
-			_activeDialogs.Add(dialog);
 		}
 
 		internal async UniTask HideDialog(DialogBase dialog)
 		{
-			await dialog.HideAsync();
+			await _dialogTransition.WaitAsync();
 
-			if (!_activeDialogs.Contains(dialog))
+			try
 			{
-				Debug.LogWarning($"Dialog {dialog} is not registered as active in {name}", this);
+				if (!_activeDialogs.Remove(dialog))
+				{
+					Debug.LogWarning($"Dialog {dialog} is not registered as active in {name}", this);
+					return;
+				}
+
+				await dialog.HideAsync();
 			}
-			else
+			finally
 			{
-				_activeDialogs.Remove(dialog);
+				_dialogTransition.Release();
 			}
 		}
 
-		internal async UniTask HideAllDialogs()
+		// Must be called while holding _dialogTransition, which is not reentrant.
+		private async UniTask HideAllDialogs()
 		{
 			UniTask[] tasks = new UniTask[_activeDialogs.Count];
 
@@ -238,8 +260,9 @@ namespace ExtraTools.UI.Base
 				tasks[i] = _activeDialogs[i].HideAsync();
 			}
 
-			await UniTask.WhenAll(tasks);
+			// Cleared before the await: a dialog that stays listed after being hidden could never be shown again.
 			_activeDialogs.Clear();
+			await UniTask.WhenAll(tasks);
 		}
 
 		internal void ShowWidget(WidgetTask task)

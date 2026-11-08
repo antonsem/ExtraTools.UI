@@ -31,19 +31,7 @@ namespace ExtraTools.UI.Dialog
 
 		public virtual void Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false)
 		{
-			ShowRoutine(message, answers, hideOtherDialogs).Forget();
-		}
-
-		private async UniTask ShowRoutine(string message, DialogAnswer[] answers, bool hideOtherDialogs)
-		{
-			if (hideOtherDialogs)
-			{
-				// Hiding clears a dialog's buttons, and this dialog may be one of those being hidden.
-				await UIManager.HideAllDialogs();
-			}
-
-			_dialogUI.Setup(message, answers);
-			await UIManager.ShowDialog(this, false);
+			UIManager.ShowDialog(this, () => _dialogUI.Setup(message, answers), hideOtherDialogs).Forget();
 		}
 
 		protected internal virtual async UniTask ShowAsync()
