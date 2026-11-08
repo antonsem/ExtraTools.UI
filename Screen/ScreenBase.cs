@@ -32,7 +32,7 @@ namespace ExtraTools.UI.Screen
 				panel.Initialize(this);
 			}
 
-			ShowDefaultPanels();
+			ShowDefaultPanels().Forget();
 		}
 
 		public async UniTask Show(CancellationToken cancellationToken = default)
