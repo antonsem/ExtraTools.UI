@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A `CancellationToken` passed to a screen's `Show` or `Hide` never reached its show and hide animations
 - Switching screens quickly with animated views could leave several screens visible
 - Changing panels quickly with animated views could leave extra panels visible or missing from `ActivePanels`
+- A canceled panel hide left the panel on screen but missing from `ActivePanels`
 - Opening and closing dialogs quickly with animated views could leave extra dialogs visible, or stop a dialog from showing again
 
 ## [2.0.2] - 2026-05-04

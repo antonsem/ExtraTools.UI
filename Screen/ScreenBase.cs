@@ -88,16 +88,7 @@ namespace ExtraTools.UI.Screen
 					return;
 				}
 
-				UniTask[] hideTasks = new UniTask[_activePanels.Count];
-
-				for (int i = 0; i < _activePanels.Count; i++)
-				{
-					hideTasks[i] = _activePanels[i].HideAsync(cancellationToken);
-				}
-
-				_activePanels.Clear();
-
-				await UniTask.WhenAll(hideTasks);
+				await DoHideActivePanelsAsync(cancellationToken);
 			}
 			finally
 			{
@@ -132,14 +123,7 @@ namespace ExtraTools.UI.Screen
 			{
 				if (!additive && _activePanels.Count > 0)
 				{
-					UniTask[] hidePanels = new UniTask[_activePanels.Count];
-					for (int i = _activePanels.Count - 1; i >= 0; i--)
-					{
-						hidePanels[i] = _activePanels[i].HideAsync(cancellationToken);
-						_activePanels.RemoveAt(i);
-					}
-
-					await UniTask.WhenAll(hidePanels);
+					await DoHideActivePanelsAsync(cancellationToken);
 				}
 
 				await DoShowPanelAsync(panelType, cancellationToken);
@@ -216,6 +200,21 @@ namespace ExtraTools.UI.Screen
 					_panelTransition.Release();
 				}
 			}
+		}
+
+		// Must be called while holding _panelTransition, which is not reentrant.
+		private async UniTask DoHideActivePanelsAsync(CancellationToken cancellationToken)
+		{
+			// A copy, because each panel removes itself from the list once its hide finishes.
+			PanelBase[] panels = _activePanels.ToArray();
+			UniTask[] hideTasks = new UniTask[panels.Length];
+
+			for (int i = 0; i < panels.Length; i++)
+			{
+				hideTasks[i] = DoHidePanelAsync(panels[i], cancellationToken);
+			}
+
+			await UniTask.WhenAll(hideTasks);
 		}
 
 		private async UniTask DoShowPanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
