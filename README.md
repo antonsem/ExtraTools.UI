@@ -44,6 +44,10 @@ parameters can be introduced in the implementation.
 Represents a single screen in the UI. A single screen can have multiple panels. Only
 child classes can have access to panels.
 
+Screen transitions run one at a time, so the last `Show()` or `Hide()` always decides what
+is left on screen. Do not await another screen's `Show()` or `Hide()` from a `ShowAsync` or
+`HideAsync` override, because it would wait for itself forever. Use `.Forget()` there instead.
+
 ### Screen UI
 
 Responsible for relaying input to the screen and visual presentation of a screen

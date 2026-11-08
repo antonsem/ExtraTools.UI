@@ -11,22 +11,6 @@ namespace ExtraTools.UI.Base
 {
 	public abstract class UIManagerBase : MonoBehaviour
 	{
-		private Dictionary<Type, ScreenBase> _screens;
-		private Dictionary<Type, DialogBase> _dialogs;
-		private Dictionary<Type, WidgetBase> _widgets;
-
-		private readonly List<DialogBase> _activeDialogs = new();
-		private readonly Queue<WidgetTask> _widgetQueue = new();
-
-		public ScreenBase ActiveScreen { get; private set; }
-		public WidgetTask ActiveWidget { get; private set; }
-
-		public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
-
-		private bool _isInitialized;
-
-		#region Constants
-
 		private const string NoScreenError =
 			"<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
 
@@ -35,8 +19,20 @@ namespace ExtraTools.UI.Base
 
 		private const string NoWidgetError =
 			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
+		private readonly List<DialogBase> _activeDialogs = new();
+		private readonly SemaphoreSlim _screenTransition = new(1, 1);
+		private readonly Queue<WidgetTask> _widgetQueue = new();
+		private Dictionary<Type, DialogBase> _dialogs;
 
-		#endregion
+		private bool _isInitialized;
+		private Dictionary<Type, ScreenBase> _screens;
+		private Dictionary<Type, WidgetBase> _widgets;
+
+		public ScreenBase ActiveScreen { get; private set; }
+
+		public WidgetTask ActiveWidget { get; private set; }
+
+		public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
 
 		protected virtual void Awake()
 		{
@@ -156,28 +152,48 @@ namespace ExtraTools.UI.Base
 
 		internal async UniTask ShowScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
-			if (ActiveScreen == screen)
-			{
-				return;
-			}
+			// One at a time: overlapping animated transitions would each act on the same ActiveScreen and leave several
+			// screens visible.
+			await _screenTransition.WaitAsync(cancellationToken);
 
-			if (ActiveScreen)
+			try
 			{
-				await ActiveScreen.HideAsync(cancellationToken);
-			}
+				if (ActiveScreen == screen)
+				{
+					return;
+				}
 
-			// Set before the await so that a cancelled show can still be hidden by the next screen.
-			ActiveScreen = screen;
-			await screen.ShowAsync(cancellationToken);
+				if (ActiveScreen)
+				{
+					await ActiveScreen.HideAsync(cancellationToken);
+				}
+
+				// Set before the await so that a canceled show can still be hidden by the next screen.
+				ActiveScreen = screen;
+				await screen.ShowAsync(cancellationToken);
+			}
+			finally
+			{
+				_screenTransition.Release();
+			}
 		}
 
 		internal async UniTask HideScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
-			await screen.HideAsync(cancellationToken);
+			await _screenTransition.WaitAsync(cancellationToken);
 
-			if (screen == ActiveScreen)
+			try
 			{
-				ActiveScreen = null;
+				await screen.HideAsync(cancellationToken);
+
+				if (screen == ActiveScreen)
+				{
+					ActiveScreen = null;
+				}
+			}
+			finally
+			{
+				_screenTransition.Release();
 			}
 		}
 
