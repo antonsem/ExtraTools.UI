@@ -25,12 +25,12 @@ Example:
 
 ```csharp
 
-[SerializedField] private UIManager _uiManager;
+[SerializeField] private UIManager _uiManager;
 
 private void Start()
 {
     MainMenuScreen mainMenuScreen = _uiManager.GetScreen<MainMenuScreen>();
-    mainMenuScreen.Show();
+    mainMenuScreen.Show().Forget();
 }
 ```
 

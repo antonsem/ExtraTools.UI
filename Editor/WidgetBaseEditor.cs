@@ -3,6 +3,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 namespace ExtraTools.UI.Editor
 {
@@ -27,16 +28,16 @@ namespace ExtraTools.UI.Editor
 			{
 				Canvas canvas = widgetUIBase.GetComponent<Canvas>();
 				TMP_Text text = widgetUIBase.GetComponentInChildren<TMP_Text>();
-				UnityEngine.UI.Button button = widgetUIBase.GetComponentInChildren<UnityEngine.UI.Button>();
+				Button button = widgetUIBase.GetComponentInChildren<Button>();
 
-				Utils.AssignFiled(widgetUIBase, "_canvas", canvas);
-				Utils.AssignFiled(widgetUIBase, "_text", text);
-				Utils.AssignFiled(widgetUIBase, "_button", button);
+				Utils.AssignField(widgetUIBase, "_canvas", canvas);
+				Utils.AssignField(widgetUIBase, "_text", text);
+				Utils.AssignField(widgetUIBase, "_button", button);
 
 				Utils.MoveUp(widgetUIBase);
 			}
 
-			Utils.AssignFiled(widgetBase, "_widgetUI", widgetUIBase);
+			Utils.AssignField(widgetBase, "_widgetUI", widgetUIBase);
 			Utils.MoveUp(widgetBase);
 			EditorUtility.SetDirty(widgetBase.gameObject);
 		}

@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using ExtraTools.UI.Panel;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace ExtraTools.UI.Screen
@@ -14,13 +15,18 @@ namespace ExtraTools.UI.Screen
 		[SerializeField] protected PanelBase[] _panels;
 		[SerializeField] protected PanelBase[] _defaultPanels;
 
+		[PublicAPI]
 		protected UIManagerBase UIManager;
+
+		[PublicAPI]
 		protected IReadOnlyList<PanelBase> ActivePanels => _activePanels;
+
 		private List<PanelBase> _activePanels;
 
 		private Dictionary<Type, PanelBase> _panelsDictionary;
 		private readonly SemaphoreSlim _panelTransition = new(1, 1);
 
+		[PublicAPI]
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
@@ -36,6 +42,7 @@ namespace ExtraTools.UI.Screen
 			ShowDefaultPanels().Forget();
 		}
 
+		[PublicAPI]
 		public async UniTask Show(CancellationToken cancellationToken = default)
 		{
 			if (UIManager.ActiveScreen == this)
@@ -47,13 +54,15 @@ namespace ExtraTools.UI.Screen
 			await ShowDefaultPanels(cancellationToken);
 		}
 
+		[PublicAPI]
 		public async UniTask Show<T>(bool additive, CancellationToken cancellationToken = default) where T : PanelBase
 		{
 			await UIManager.ShowScreen(this, cancellationToken);
-			await ShowPanelAsync<T>(additive, cancellationToken: cancellationToken);
+			await ShowPanelAsync<T>(additive, cancellationToken);
 		}
 
-		public async UniTask Hide<T>(CancellationToken cancellationToken) where T : PanelBase
+		[PublicAPI]
+		public async UniTask Hide<T>(CancellationToken cancellationToken = default) where T : PanelBase
 		{
 			if (IsPanelActive<T>())
 			{
@@ -61,11 +70,13 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
+		[PublicAPI]
 		public async UniTask Hide(CancellationToken cancellationToken = default)
 		{
 			await UIManager.HideScreen(this, cancellationToken);
 		}
 
+		[PublicAPI]
 		protected virtual async UniTask HidePanelsAsync(CancellationToken cancellationToken = default)
 		{
 			await _panelTransition.WaitAsync(cancellationToken);
@@ -94,11 +105,13 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
+		[PublicAPI]
 		protected bool IsPanelActive<T>() where T : PanelBase
 		{
 			return _activePanels.Contains(GetPanel<T>());
 		}
 
+		[PublicAPI]
 		protected virtual async UniTask ShowPanelAsync<T>(bool additive = false,
 			CancellationToken cancellationToken = default) where T : PanelBase
 		{
@@ -108,6 +121,7 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
+		[PublicAPI]
 		protected virtual async UniTask ShowPanelAsync(PanelBase panelType, bool additive = false,
 			CancellationToken cancellationToken = default)
 		{
@@ -136,6 +150,7 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
+		[PublicAPI]
 		protected virtual async UniTask HidePanelAsync<T>(CancellationToken cancellationToken = default)
 			where T : PanelBase
 		{
@@ -145,6 +160,7 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
+		[PublicAPI]
 		protected virtual async UniTask HidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
 			await _panelTransition.WaitAsync(cancellationToken);
@@ -159,17 +175,20 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
+		[PublicAPI]
 		protected T GetPanel<T>() where T : PanelBase
 		{
 			_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel);
 			return panel as T;
 		}
 
+		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
 			await _screenUI.Show(cancellationToken);
 		}
 
+		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			await HidePanelsAsync(cancellationToken);
@@ -201,7 +220,6 @@ namespace ExtraTools.UI.Screen
 
 		private async UniTask DoShowPanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
-			// Added before the await so that a cancelled show can still be hidden later.
 			if (!_activePanels.Contains(panel))
 			{
 				_activePanels.Add(panel);

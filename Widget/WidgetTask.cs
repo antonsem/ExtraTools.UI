@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace ExtraTools.UI.Widget
 {
@@ -23,6 +24,7 @@ namespace ExtraTools.UI.Widget
 			_cancellationTokenSource = new CancellationTokenSource();
 		}
 
+		[PublicAPI]
 		public void StopTask()
 		{
 			if (_cancellationTokenSource.IsCancellationRequested)

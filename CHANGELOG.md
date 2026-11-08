@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `[PublicAPI]` annotations on the members meant to be called or overridden by consuming projects
+
 ### Changed
+- Renamed `Utils.AssignFiled` to `Utils.AssignField`. Editor code calling the old name needs updating
 - Showing the already active screen no longer hides and re-shows it. `Show()` only resets its panels to the defaults
+- The `CancellationToken` of `ScreenBase.Hide<T>` is now optional
+- `ScreenUIBase._canvas` is now `protected`, matching the other views
+- Panel, dialog and widget views now require a `Canvas`, matching screen views
 
 ### Fixed
 - A dialog re-shown with `hideOtherDialogs` while already open lost its buttons

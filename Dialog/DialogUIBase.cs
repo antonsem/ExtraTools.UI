@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ExtraTools.UI.Dialog
 {
+	[RequireComponent(typeof(Canvas))]
 	public abstract class DialogUIBase : MonoBehaviour
 	{
 		internal Action OnClicked;
@@ -20,6 +22,7 @@ namespace ExtraTools.UI.Dialog
 
 		private readonly List<(Button, TMP_Text)> _buttons = new(2);
 
+		[PublicAPI]
 		protected virtual void OnDisable()
 		{
 			ClearButtons();
@@ -85,12 +88,14 @@ namespace ExtraTools.UI.Dialog
 			}
 		}
 
+		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
 			_canvas.enabled = true;
 			await UniTask.CompletedTask;
 		}
 
+		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			ClearButtons();

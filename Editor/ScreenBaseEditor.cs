@@ -27,20 +27,20 @@ namespace ExtraTools.UI.Editor
 			{
 				Canvas canvas = screenUIBase.GetComponent<Canvas>();
 
-				Utils.AssignFiled(screenUIBase, "_canvas", canvas);
+				Utils.AssignField(screenUIBase, "_canvas", canvas);
 
 				Utils.MoveUp(screenUIBase);
 			}
 
-			Utils.AssignFiled(screenBase, "_screenUI", screenUIBase);
+			Utils.AssignField(screenBase, "_screenUI", screenUIBase);
 
 			PanelBase[] panels = screenBase.GetComponentsInChildren<PanelBase>();
-			Utils.AssignFiled(screenBase, "_panels", panels);
+			Utils.AssignField(screenBase, "_panels", panels);
 
 			if (panels.Length > 0)
 			{
 				PanelBase[] defaultPanels = { panels[0] };
-				Utils.AssignFiled(screenBase, "_defaultPanels", defaultPanels);
+				Utils.AssignField(screenBase, "_defaultPanels", defaultPanels);
 			}
 
 			foreach (PanelBase panel in panels)

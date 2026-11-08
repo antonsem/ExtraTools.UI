@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
@@ -22,11 +23,12 @@ namespace ExtraTools.UI.Editor
 
 			for (int i = 0; i < componentCount; i++)
 			{
-				UnityEditorInternal.ComponentUtility.MoveComponentUp(component);
+				ComponentUtility.MoveComponentUp(component);
 			}
 		}
 
-		public static VisualElement AddButton(SerializedObject serializedObject, UnityEditor.Editor editor, string buttonText, Action clickEvent)
+		public static VisualElement AddButton(SerializedObject serializedObject, UnityEditor.Editor editor,
+			string buttonText, Action clickEvent)
 		{
 			VisualElement inspector = new();
 
@@ -34,7 +36,7 @@ namespace ExtraTools.UI.Editor
 
 			Button button = new(clickEvent)
 			{
-				text = buttonText
+				text = buttonText,
 			};
 
 			inspector.Add(button);
@@ -42,9 +44,10 @@ namespace ExtraTools.UI.Editor
 			return inspector;
 		}
 
-		public static void AssignFiled<T>(T type, string fieldName, object value)
+		public static void AssignField<T>(T type, string fieldName, object value)
 		{
-			FieldInfo panelsField = typeof(T).GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+			FieldInfo panelsField = typeof(T).GetField(fieldName,
+				BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 			panelsField?.SetValue(type, value);
 		}
 

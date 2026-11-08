@@ -26,12 +26,12 @@ namespace ExtraTools.UI.Editor
 			{
 				Canvas canvas = panelUIBase.GetComponent<Canvas>();
 
-				Utils.AssignFiled(panelUIBase, "_canvas", canvas);
+				Utils.AssignField(panelUIBase, "_canvas", canvas);
 
 				Utils.MoveUp(panelUIBase);
 			}
 
-			Utils.AssignFiled(panelBase, "_panelUI", panelUIBase);
+			Utils.AssignField(panelBase, "_panelUI", panelUIBase);
 			Utils.MoveUp(panelBase);
 			EditorUtility.SetDirty(panelBase.gameObject);
 		}

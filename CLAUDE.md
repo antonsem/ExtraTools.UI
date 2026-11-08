@@ -32,7 +32,7 @@ Root namespace `ExtraTools.UI`, one sub-namespace per folder (`ExtraTools.UI.Scr
 ## Automatic setup (editor)
 The inspector setup buttons (e.g. "Set Screen" on `ScreenBase`) rely on conventions. Breaking them silently breaks the workflow for every consumer.
 - A presenter class and its view live next to each other, and the view is named `<PresenterName>UI` in the same namespace and assembly (`MainMenuScreen` → `MainMenuScreenUI`). `Utils.TryAddType` finds it by that name.
-- The editor assigns serialized fields **by name through reflection** (`Utils.AssignFiled`): `_canvas`, `_screenUI`, `_panels`, `_defaultPanels`, `_panelUI`, `_dialogUI`, `_widgetUI` and others. Renaming any of these fields in the runtime code requires updating the matching editor script in the same change.
+- The editor assigns serialized fields **by name through reflection** (`Utils.AssignField`): `_canvas`, `_screenUI`, `_panels`, `_defaultPanels`, `_panelUI`, `_dialogUI`, `_widgetUI` and others. Renaming any of these fields in the runtime code requires updating the matching editor script in the same change.
 - Setup must not throw when the convention isn't followed. Missing UI counterpart means "do nothing", as the README promises.
 
 ## Coding conventions

@@ -26,13 +26,12 @@ namespace ExtraTools.UI.Editor
 			{
 				Canvas canvas = dialogUIBase.GetComponent<Canvas>();
 
-				Utils.AssignFiled(dialogUIBase, "_canvas", canvas);
+				Utils.AssignField(dialogUIBase, "_canvas", canvas);
 
-				Utils.InvokeMethod(dialogUIBase, "SetDialogUI");
 				Utils.MoveUp(dialogUIBase);
 			}
 
-			Utils.AssignFiled(dialogBase, "_dialogUI", dialogUIBase);
+			Utils.AssignField(dialogBase, "_dialogUI", dialogUIBase);
 			Utils.MoveUp(dialogBase);
 			EditorUtility.SetDirty(dialogBase.gameObject);
 		}
