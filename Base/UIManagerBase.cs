@@ -156,6 +156,11 @@ namespace ExtraTools.UI.Base
 
 		internal async UniTask ShowScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
+			if (ActiveScreen == screen)
+			{
+				return;
+			}
+
 			if (ActiveScreen)
 			{
 				await ActiveScreen.HideAsync();

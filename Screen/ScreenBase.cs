@@ -37,6 +37,11 @@ namespace ExtraTools.UI.Screen
 
 		public async UniTask Show(CancellationToken cancellationToken = default)
 		{
+			if (UIManager.ActiveScreen == this)
+			{
+				await HidePanelsAsync(cancellationToken);
+			}
+
 			await UIManager.ShowScreen(this, cancellationToken);
 			await ShowDefaultPanels(cancellationToken);
 		}
