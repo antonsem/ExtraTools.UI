@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `[PublicAPI]` annotations on the members meant to be called or overridden by consuming projects
+- `DialogBase.Hide`, to close a dialog from code
 
 ### Changed
+- `DialogBase.Show` now returns a `UniTask` and takes a `CancellationToken`. Calls from sync code need `.Forget()`
+- `DialogBase.ShowAsync` and `HideAsync` now take a `CancellationToken`. Overrides need the new signature
 - Renamed `Utils.AssignFiled` to `Utils.AssignField`. Editor code calling the old name needs updating
 - Showing the already active screen no longer hides and re-shows it. `Show()` only resets its panels to the defaults
 - The `CancellationToken` of `ScreenBase.Hide<T>` is now optional

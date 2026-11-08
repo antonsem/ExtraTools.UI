@@ -5,20 +5,13 @@ using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Dialog;
 using ExtraTools.UI.Screen;
 using ExtraTools.UI.Widget;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace ExtraTools.UI.Base
 {
 	public abstract class UIManagerBase : MonoBehaviour
 	{
-		private const string NoScreenError =
-			"<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
-
-		private const string NoDialogError =
-			"<b>{0}</b> <color=red>does not have</color> a dialog of type <b>{1}</b>!";
-
-		private const string NoWidgetError =
-			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
 		private readonly List<DialogBase> _activeDialogs = new();
 		private readonly SemaphoreSlim _dialogTransition = new(1, 1);
 		private readonly SemaphoreSlim _screenTransition = new(1, 1);
@@ -29,12 +22,25 @@ namespace ExtraTools.UI.Base
 		private Dictionary<Type, ScreenBase> _screens;
 		private Dictionary<Type, WidgetBase> _widgets;
 
+		private const string NoScreenError =
+			"<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
+
+		private const string NoDialogError =
+			"<b>{0}</b> <color=red>does not have</color> a dialog of type <b>{1}</b>!";
+
+		private const string NoWidgetError =
+			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
+
+		[PublicAPI]
 		public ScreenBase ActiveScreen { get; private set; }
 
+		[PublicAPI]
 		public WidgetTask ActiveWidget { get; private set; }
 
+		[PublicAPI]
 		public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
 
+		[PublicAPI]
 		protected virtual void Awake()
 		{
 			if (!_isInitialized)
@@ -43,16 +49,19 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
+		[PublicAPI]
 		protected virtual void OnDestroy()
 		{
 			HideAllWidgets();
 		}
 
+		[PublicAPI]
 		public bool IsDialogActive(DialogBase dialog)
 		{
 			return _activeDialogs.Contains(dialog);
 		}
 
+		[PublicAPI]
 		public T GetScreen<T>() where T : ScreenBase
 		{
 			if (!_isInitialized)
@@ -71,6 +80,7 @@ namespace ExtraTools.UI.Base
 			return val.GetComponent<T>();
 		}
 
+		[PublicAPI]
 		public T GetDialog<T>() where T : DialogBase
 		{
 			if (!_isInitialized)
@@ -89,6 +99,7 @@ namespace ExtraTools.UI.Base
 			return val.GetComponent<T>();
 		}
 
+		[PublicAPI]
 		public T GetWidget<T>() where T : WidgetBase
 		{
 			if (!_isInitialized)
@@ -198,17 +209,18 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
-		internal async UniTask ShowDialog(DialogBase dialog, Action setup, bool hideRest)
+		internal async UniTask ShowDialog(DialogBase dialog, Action setup, bool hideRest,
+			CancellationToken cancellationToken = default)
 		{
 			// One at a time, and hiding the rest shares the turn with the show: otherwise two calls that each hide the
 			// others would interleave and leave both dialogs open.
-			await _dialogTransition.WaitAsync();
+			await _dialogTransition.WaitAsync(cancellationToken);
 
 			try
 			{
 				if (hideRest)
 				{
-					await HideAllDialogs();
+					await HideAllDialogs(cancellationToken);
 				}
 
 				// After the hide, because hiding clears a dialog's buttons and this dialog may be one of those hidden.
@@ -222,7 +234,7 @@ namespace ExtraTools.UI.Base
 
 				// Added before the await so that a failed show can still be hidden later.
 				_activeDialogs.Add(dialog);
-				await dialog.ShowAsync();
+				await dialog.ShowAsync(cancellationToken);
 			}
 			finally
 			{
@@ -230,19 +242,19 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
-		internal async UniTask HideDialog(DialogBase dialog)
+		internal async UniTask HideDialog(DialogBase dialog, CancellationToken cancellationToken = default)
 		{
-			await _dialogTransition.WaitAsync();
+			await _dialogTransition.WaitAsync(cancellationToken);
 
 			try
 			{
-				if (!_activeDialogs.Remove(dialog))
+				if (!_activeDialogs.Contains(dialog))
 				{
 					Debug.LogWarning($"Dialog {dialog} is not registered as active in {name}", this);
 					return;
 				}
 
-				await dialog.HideAsync();
+				await DoHideDialog(dialog, cancellationToken);
 			}
 			finally
 			{
@@ -250,19 +262,23 @@ namespace ExtraTools.UI.Base
 			}
 		}
 
-		// Must be called while holding _dialogTransition, which is not reentrant.
-		private async UniTask HideAllDialogs()
+		private async UniTask HideAllDialogs(CancellationToken cancellationToken = default)
 		{
-			UniTask[] tasks = new UniTask[_activeDialogs.Count];
+			DialogBase[] dialogs = _activeDialogs.ToArray();
+			UniTask[] tasks = new UniTask[dialogs.Length];
 
-			for (int i = 0; i < _activeDialogs.Count; i++)
+			for (int i = 0; i < dialogs.Length; i++)
 			{
-				tasks[i] = _activeDialogs[i].HideAsync();
+				tasks[i] = DoHideDialog(dialogs[i], cancellationToken);
 			}
 
-			// Cleared before the await: a dialog that stays listed after being hidden could never be shown again.
-			_activeDialogs.Clear();
 			await UniTask.WhenAll(tasks);
+		}
+
+		private async UniTask DoHideDialog(DialogBase dialog, CancellationToken cancellationToken)
+		{
+			await dialog.HideAsync(cancellationToken);
+			_activeDialogs.Remove(dialog);
 		}
 
 		internal void ShowWidget(WidgetTask task)
@@ -271,11 +287,13 @@ namespace ExtraTools.UI.Base
 			PlayWidgetQueue().Forget();
 		}
 
+		[PublicAPI]
 		protected void HideActiveWidget()
 		{
 			ActiveWidget?.StopTask();
 		}
 
+		[PublicAPI]
 		protected void HideAllWidgets()
 		{
 			_widgetQueue.Clear();

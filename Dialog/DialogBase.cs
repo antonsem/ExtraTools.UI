@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -33,27 +34,35 @@ namespace ExtraTools.UI.Dialog
 		}
 
 		[PublicAPI]
-		public virtual void Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false)
+		public virtual UniTask Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false,
+			CancellationToken cancellationToken = default)
 		{
-			UIManager.ShowDialog(this, () => _dialogUI.Setup(message, answers), hideOtherDialogs).Forget();
+			return UIManager.ShowDialog(this, () => _dialogUI.Setup(message, answers), hideOtherDialogs,
+				cancellationToken);
 		}
 
 		[PublicAPI]
-		protected internal virtual async UniTask ShowAsync()
+		public virtual UniTask Hide(CancellationToken cancellationToken = default)
 		{
-			await _dialogUI.ShowAsync();
+			return UIManager.HideDialog(this, cancellationToken);
 		}
 
 		[PublicAPI]
-		protected internal virtual async UniTask HideAsync()
+		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _dialogUI.HideAsync();
+			await _dialogUI.ShowAsync(cancellationToken);
+		}
+
+		[PublicAPI]
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
+		{
+			await _dialogUI.HideAsync(cancellationToken);
 		}
 
 		[PublicAPI]
 		protected virtual void OnClicked()
 		{
-			UIManager.HideDialog(this).Forget();
+			Hide().Forget();
 		}
 	}
 }
