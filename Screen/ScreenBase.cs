@@ -74,6 +74,8 @@ namespace ExtraTools.UI.Screen
 				hideTasks[i] = _activePanels[i].HideAsync(cancellationToken);
 			}
 
+			_activePanels.Clear();
+
 			await UniTask.WhenAll(hideTasks);
 		}
 

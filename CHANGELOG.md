@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stopping a widget had no effect, and a widget outliving its scene threw a `MissingReferenceException`
 - Stopping a widget twice, or reading its `CancellationToken` after a stop, threw a `NullReferenceException`
 - UI could be initialized twice, and looking up other UI from an `Initialize` override overflowed the stack
+- Panels hidden along with their screen were still reported as active
 
 ## [2.0.2] - 2026-05-04
 
