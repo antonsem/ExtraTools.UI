@@ -169,14 +169,14 @@ namespace ExtraTools.UI.Screen
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _screenUI.Show(cancellationToken);
+			await _screenUI.ShowAsync(cancellationToken);
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			await HidePanelsAsync(cancellationToken);
-			await _screenUI.Hide(cancellationToken);
+			await _screenUI.HideAsync(cancellationToken);
 		}
 
 		private async UniTask ShowDefaultPanels(CancellationToken cancellationToken = default)
