@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Show<T>(additive: true)` closed the other panels when called on the active screen
 - Widgets never expired at `Time.timeScale = 0`. `showTime` now always counts real seconds
 - Showing an open dialog again kept its old callbacks and buttons and listed it twice. It now updates in place without replaying `ShowAsync`
+- An exception or cancellation while showing a widget blocked the widget queue, and a stopped widget could stay on screen
 
 ## [2.0.2] - 2026-05-04
 

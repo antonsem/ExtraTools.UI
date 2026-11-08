@@ -27,17 +27,24 @@ namespace ExtraTools.UI.Widget
 			CancellationToken cancellationToken = default)
 		{
 			_task = task;
-			await _widgetUI.ShowAsync(task, cancellationToken);
 
-			await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: cancellationToken)
-				.SuppressCancellationThrow();
+			// A stop can cancel the show animation, but the widget still has to hide afterwards.
+			bool isCancelled = await _widgetUI.ShowAsync(task, cancellationToken).SuppressCancellationThrow();
+
+			if (!isCancelled)
+			{
+				await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: cancellationToken)
+					.SuppressCancellationThrow();
+			}
 
 			if (!_widgetUI)
 			{
 				return;
 			}
 
-			await _widgetUI.HideAsync(cancellationToken);
+			// ReSharper disable once MethodSupportsCancellation
+			// The token is left out on purpose: after a stop it is already canceled and the hide must still finish.
+			await _widgetUI.HideAsync();
 		}
 
 		protected internal virtual void OnClick()

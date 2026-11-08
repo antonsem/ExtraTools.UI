@@ -188,6 +188,12 @@ namespace ExtraTools.UI.Base
 			}
 
 			dialog.transform.SetAsLastSibling();
+
+			if (_activeDialogs.Contains(dialog))
+			{
+				return;
+			}
+
 			await dialog.ShowAsync();
 			_activeDialogs.Add(dialog);
 		}
@@ -244,7 +250,20 @@ namespace ExtraTools.UI.Base
 			}
 
 			ActiveWidget = _widgetQueue.Dequeue();
-			await ActiveWidget.Base.ShowAsync(ActiveWidget, ActiveWidget.CancellationToken);
+
+			try
+			{
+				await ActiveWidget.Base.ShowAsync(ActiveWidget, ActiveWidget.CancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+				// Stopping a widget is expected, and subclasses overriding ShowAsync may let this through.
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception, this);
+			}
+
 			ActiveWidget = null;
 
 			if (_widgetQueue.Count > 0)
