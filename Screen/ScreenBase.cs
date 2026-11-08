@@ -19,6 +19,7 @@ namespace ExtraTools.UI.Screen
 		private List<PanelBase> _activePanels;
 
 		private Dictionary<Type, PanelBase> _panelsDictionary;
+		private readonly SemaphoreSlim _panelTransition = new(1, 1);
 
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
@@ -67,21 +68,30 @@ namespace ExtraTools.UI.Screen
 
 		protected virtual async UniTask HidePanelsAsync(CancellationToken cancellationToken = default)
 		{
-			if (_activePanels.Count == 0)
+			await _panelTransition.WaitAsync(cancellationToken);
+
+			try
 			{
-				return;
+				if (_activePanels.Count == 0)
+				{
+					return;
+				}
+
+				UniTask[] hideTasks = new UniTask[_activePanels.Count];
+
+				for (int i = 0; i < _activePanels.Count; i++)
+				{
+					hideTasks[i] = _activePanels[i].HideAsync(cancellationToken);
+				}
+
+				_activePanels.Clear();
+
+				await UniTask.WhenAll(hideTasks);
 			}
-
-			UniTask[] hideTasks = new UniTask[_activePanels.Count];
-
-			for (int i = 0; i < _activePanels.Count; i++)
+			finally
 			{
-				hideTasks[i] = _activePanels[i].HideAsync(cancellationToken);
+				_panelTransition.Release();
 			}
-
-			_activePanels.Clear();
-
-			await UniTask.WhenAll(hideTasks);
 		}
 
 		protected bool IsPanelActive<T>() where T : PanelBase
@@ -101,19 +111,29 @@ namespace ExtraTools.UI.Screen
 		protected virtual async UniTask ShowPanelAsync(PanelBase panelType, bool additive = false,
 			CancellationToken cancellationToken = default)
 		{
-			if (!additive && _activePanels.Count > 0)
+			// One at a time: overlapping animated changes would miss panels that are still being shown.
+			await _panelTransition.WaitAsync(cancellationToken);
+
+			try
 			{
-				UniTask[] hidePanels = new UniTask[_activePanels.Count];
-				for (int i = _activePanels.Count - 1; i >= 0; i--)
+				if (!additive && _activePanels.Count > 0)
 				{
-					hidePanels[i] = _activePanels[i].HideAsync(cancellationToken);
-					_activePanels.RemoveAt(i);
+					UniTask[] hidePanels = new UniTask[_activePanels.Count];
+					for (int i = _activePanels.Count - 1; i >= 0; i--)
+					{
+						hidePanels[i] = _activePanels[i].HideAsync(cancellationToken);
+						_activePanels.RemoveAt(i);
+					}
+
+					await UniTask.WhenAll(hidePanels);
 				}
 
-				await UniTask.WhenAll(hidePanels);
+				await DoShowPanelAsync(panelType, cancellationToken);
 			}
-
-			await DoShowPanelAsync(panelType, cancellationToken);
+			finally
+			{
+				_panelTransition.Release();
+			}
 		}
 
 		protected virtual async UniTask HidePanelAsync<T>(CancellationToken cancellationToken = default)
@@ -127,7 +147,16 @@ namespace ExtraTools.UI.Screen
 
 		protected virtual async UniTask HidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
-			await DoHidePanelAsync(panel, cancellationToken);
+			await _panelTransition.WaitAsync(cancellationToken);
+
+			try
+			{
+				await DoHidePanelAsync(panel, cancellationToken);
+			}
+			finally
+			{
+				_panelTransition.Release();
+			}
 		}
 
 		protected T GetPanel<T>() where T : PanelBase
@@ -147,11 +176,13 @@ namespace ExtraTools.UI.Screen
 			await _screenUI.Hide(cancellationToken);
 		}
 
-		private UniTask ShowDefaultPanels(CancellationToken cancellationToken = default)
+		private async UniTask ShowDefaultPanels(CancellationToken cancellationToken = default)
 		{
-			if (_panels?.Length > 0)
+			if (_panels?.Length > 0 && _defaultPanels?.Length > 0)
 			{
-				if (_defaultPanels?.Length > 0)
+				await _panelTransition.WaitAsync(cancellationToken);
+
+				try
 				{
 					UniTask[] panelsToShow = new UniTask[_defaultPanels.Length];
 					for (int i = 0; i < _defaultPanels.Length; i++)
@@ -159,20 +190,24 @@ namespace ExtraTools.UI.Screen
 						panelsToShow[i] = DoShowPanelAsync(_defaultPanels[i], cancellationToken);
 					}
 
-					return UniTask.WhenAll(panelsToShow);
+					await UniTask.WhenAll(panelsToShow);
+				}
+				finally
+				{
+					_panelTransition.Release();
 				}
 			}
-
-			return UniTask.CompletedTask;
 		}
 
 		private async UniTask DoShowPanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
-			await panel.ShowAsync(cancellationToken);
+			// Added before the await so that a cancelled show can still be hidden later.
 			if (!_activePanels.Contains(panel))
 			{
 				_activePanels.Add(panel);
 			}
+
+			await panel.ShowAsync(cancellationToken);
 		}
 
 		private async UniTask DoHidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)

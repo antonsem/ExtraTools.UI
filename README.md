@@ -57,6 +57,10 @@ Responsible for relaying input to the screen and visual presentation of a screen
 Represents a part of a screen. Not mandatory, but useful if only a part of the screen needs
 to change. An example can be a settings screen with multiple tabs for different settings.
 
+Panel changes on a screen run one at a time. Do not await another panel change on the same
+screen from a panel's `ShowAsync` or `HideAsync` override, because it would wait for itself
+forever. Use `.Forget()` there instead.
+
 ### Dialog
 
 Represents a pop-up dialog window. Useful to inform the user or to ask an immediate
