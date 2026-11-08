@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI could be initialized twice, and looking up other UI from an `Initialize` override overflowed the stack
 - Panels hidden along with their screen were still reported as active
 - `Show<T>(additive: true)` closed the other panels when called on the active screen
+- Widgets never expired at `Time.timeScale = 0`. `showTime` now always counts real seconds
+- Showing an open dialog again kept its old callbacks and buttons and listed it twice. It now updates in place without replaying `ShowAsync`
 
 ## [2.0.2] - 2026-05-04
 

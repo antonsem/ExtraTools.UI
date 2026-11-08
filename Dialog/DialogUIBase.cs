@@ -27,6 +27,7 @@ namespace ExtraTools.UI.Dialog
 
 		internal void Setup(string text, params DialogAnswer[] answers)
 		{
+			ClearButtons();
 			_message.text = text;
 
 			if (answers != null)
