@@ -12,7 +12,7 @@ namespace ExtraTools.UI.Widget
 
 		public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
-		private CancellationTokenSource _cancellationTokenSource;
+		private readonly CancellationTokenSource _cancellationTokenSource;
 
 		internal WidgetTask(WidgetBase widgetBase, string text, float showTime, Action callback)
 		{
@@ -25,9 +25,12 @@ namespace ExtraTools.UI.Widget
 
 		public void StopTask()
 		{
+			if (_cancellationTokenSource.IsCancellationRequested)
+			{
+				return;
+			}
+
 			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
-			_cancellationTokenSource = null;
 		}
 	}
 }
