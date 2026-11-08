@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Showing an open dialog again kept its old callbacks and buttons and listed it twice. It now updates in place without replaying `ShowAsync`
 - An exception or cancellation while showing a widget blocked the widget queue, and a stopped widget could stay on screen
 - Exceptions from default panels at startup were only reported when the garbage collector ran
+- A `CancellationToken` passed to a screen's `Show` or `Hide` never reached its show and hide animations
 
 ## [2.0.2] - 2026-05-04
 

@@ -163,16 +163,17 @@ namespace ExtraTools.UI.Base
 
 			if (ActiveScreen)
 			{
-				await ActiveScreen.HideAsync();
+				await ActiveScreen.HideAsync(cancellationToken);
 			}
 
-			await screen.ShowAsync();
+			// Set before the await so that a cancelled show can still be hidden by the next screen.
 			ActiveScreen = screen;
+			await screen.ShowAsync(cancellationToken);
 		}
 
 		internal async UniTask HideScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
-			await screen.HideAsync();
+			await screen.HideAsync(cancellationToken);
 
 			if (screen == ActiveScreen)
 			{
