@@ -8,10 +8,9 @@ namespace ExtraTools.UI.Widget
 {
 	public abstract class WidgetBase : MonoBehaviour
 	{
-		[SerializeField] protected WidgetUIBase _widgetUI;
-
 		protected UIManagerBase UIManager;
 		private WidgetTask _task;
+		[SerializeField] protected WidgetUIBase _widgetUI;
 
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
@@ -28,9 +27,9 @@ namespace ExtraTools.UI.Widget
 			CancellationToken cancellationToken = default)
 		{
 			_task = task;
-			await _widgetUI.ShowAsync(task);
+			await _widgetUI.ShowAsync(task, cancellationToken);
 
-			await UniTask.Delay((int)(1000 * task.ShowTime), cancellationToken: cancellationToken)
+			await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: cancellationToken)
 				.SuppressCancellationThrow();
 
 			if (!_widgetUI)
@@ -38,7 +37,7 @@ namespace ExtraTools.UI.Widget
 				return;
 			}
 
-			await _widgetUI.HideAsync();
+			await _widgetUI.HideAsync(cancellationToken);
 		}
 
 		protected internal virtual void OnClick()
