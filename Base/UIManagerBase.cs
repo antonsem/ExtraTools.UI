@@ -40,7 +40,10 @@ namespace ExtraTools.UI.Base
 
 		protected virtual void Awake()
 		{
-			Initialize();
+			if (!_isInitialized)
+			{
+				Initialize();
+			}
 		}
 
 		protected virtual void OnDestroy()
@@ -110,33 +113,45 @@ namespace ExtraTools.UI.Base
 		private void Initialize()
 		{
 			ScreenBase[] screens = transform.GetComponentsInChildren<ScreenBase>();
+			DialogBase[] dialogs = transform.GetComponentsInChildren<DialogBase>();
+			WidgetBase[] widgets = transform.GetComponentsInChildren<WidgetBase>();
 
 			_screens = new Dictionary<Type, ScreenBase>(screens.Length);
 			foreach (ScreenBase screen in screens)
 			{
-				screen.Initialize(this);
 				_screens.Add(screen.GetType(), screen);
 			}
-
-			DialogBase[] dialogs = transform.GetComponentsInChildren<DialogBase>();
 
 			_dialogs = new Dictionary<Type, DialogBase>(dialogs.Length);
 			foreach (DialogBase dialog in dialogs)
 			{
-				dialog.Initialize(this);
 				_dialogs.Add(dialog.GetType(), dialog);
 			}
-
-			WidgetBase[] widgets = transform.GetComponentsInChildren<WidgetBase>();
 
 			_widgets = new Dictionary<Type, WidgetBase>(widgets.Length);
 			foreach (WidgetBase widget in widgets)
 			{
-				widget.Initialize(this);
 				_widgets.Add(widget.GetType(), widget);
 			}
 
+			// Everything is registered first because a child's Initialize override may look up any other UI.
 			_isInitialized = true;
+
+			// Screens go last so they can already use dialogs and widgets.
+			foreach (DialogBase dialog in dialogs)
+			{
+				dialog.Initialize(this);
+			}
+
+			foreach (WidgetBase widget in widgets)
+			{
+				widget.Initialize(this);
+			}
+
+			foreach (ScreenBase screen in screens)
+			{
+				screen.Initialize(this);
+			}
 		}
 
 		internal async UniTask ShowScreen(ScreenBase screen, CancellationToken cancellationToken = default)
