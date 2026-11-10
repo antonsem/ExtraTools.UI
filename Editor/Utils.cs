@@ -104,8 +104,9 @@ namespace ExtraTools.UI.Editor
 			Type type = Type.GetType(typeToFind);
 			if (type != null && type.IsSubclassOf(typeof(T)))
 			{
+				// Unity can refuse the component, for example a Canvas on a prefab instance without a RectTransform.
 				component = Undo.AddComponent(neighbour.gameObject, type) as T;
-				return true;
+				return component;
 			}
 
 			component = null;

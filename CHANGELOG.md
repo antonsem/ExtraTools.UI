@@ -45,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A dialog shown with an empty `answers` array had no buttons and couldn't be closed by the player. It now gets the default OK button, like a null array
 - Asking a screen for a panel type it doesn't have did nothing silently. It now logs an error, like the manager does for screens, dialogs and widgets
 - "Set Screen" and "Set UI" replaced a screen's default panels with its first panel, and kept defaults that no longer belonged to the screen
+- Setup replaced a view assigned by hand on another GameObject, either with `null` or with a new view on the presenter's GameObject. The widget setup did the same with a text and button assigned by hand
+- Values set by the setup buttons were lost on prefab instances, and the setup buttons couldn't be undone. Each press is now one undo step
+- `Utils.TryAddType` returned `true` with a null component when Unity refused to add it
 
 ## [2.0.2] - 2026-05-04
 
