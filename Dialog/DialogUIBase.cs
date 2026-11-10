@@ -33,7 +33,7 @@ namespace ExtraTools.UI.Dialog
 			ClearButtons();
 			_message.text = text;
 
-			if (answers != null)
+			if (answers?.Length > 0)
 			{
 				SetupAnswers(answers);
 			}

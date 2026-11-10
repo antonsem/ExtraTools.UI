@@ -26,6 +26,9 @@ namespace ExtraTools.UI.Screen
 		private Dictionary<Type, PanelBase> _panelsDictionary;
 		private readonly SemaphoreSlim _panelTransition = new(1, 1);
 
+		private const string NoPanelError =
+			"<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
+
 		[PublicAPI]
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
@@ -110,6 +113,10 @@ namespace ExtraTools.UI.Screen
 			{
 				await ShowPanelAsync(panel, additive, cancellationToken);
 			}
+			else
+			{
+				Debug.LogError(string.Format(NoPanelError, name, typeof(T)), this);
+			}
 		}
 
 		[PublicAPI]
@@ -142,6 +149,10 @@ namespace ExtraTools.UI.Screen
 			{
 				await HidePanelAsync(panel, cancellationToken);
 			}
+			else
+			{
+				Debug.LogError(string.Format(NoPanelError, name, typeof(T)), this);
+			}
 		}
 
 		[PublicAPI]
@@ -162,8 +173,13 @@ namespace ExtraTools.UI.Screen
 		[PublicAPI]
 		protected T GetPanel<T>() where T : PanelBase
 		{
-			_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel);
-			return panel as T;
+			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
+			{
+				return panel as T;
+			}
+
+			Debug.LogError(string.Format(NoPanelError, name, typeof(T)), this);
+			return null;
 		}
 
 		[PublicAPI]
