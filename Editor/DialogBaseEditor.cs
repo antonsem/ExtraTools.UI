@@ -20,9 +20,9 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetDialog(DialogBase dialogBase)
 		{
-			DialogUIBase dialogUIBase = dialogBase.GetComponent<DialogUIBase>();
+			DialogUIBase dialogUIBase = Utils.GetOrAddView<DialogBase, DialogUIBase>(dialogBase, "_dialogUI");
 
-			if (dialogUIBase || Utils.TryAddType(dialogBase, out dialogUIBase))
+			if (dialogUIBase)
 			{
 				Canvas canvas = dialogUIBase.GetComponent<Canvas>();
 

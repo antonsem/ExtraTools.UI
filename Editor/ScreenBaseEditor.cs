@@ -22,9 +22,9 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetScreen(ScreenBase screenBase)
 		{
-			ScreenUIBase screenUIBase = screenBase.GetComponent<ScreenUIBase>();
+			ScreenUIBase screenUIBase = Utils.GetOrAddView<ScreenBase, ScreenUIBase>(screenBase, "_screenUI");
 
-			if (screenUIBase || Utils.TryAddType(screenBase, out screenUIBase))
+			if (screenUIBase)
 			{
 				Canvas canvas = screenUIBase.GetComponent<Canvas>();
 

@@ -22,17 +22,25 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetWidget(WidgetBase widgetBase)
 		{
-			WidgetUIBase widgetUIBase = widgetBase.GetComponent<WidgetUIBase>();
+			WidgetUIBase widgetUIBase = Utils.GetOrAddView<WidgetBase, WidgetUIBase>(widgetBase, "_widgetUI");
 
-			if (widgetUIBase || Utils.TryAddType(widgetBase, out widgetUIBase))
+			if (widgetUIBase)
 			{
 				Canvas canvas = widgetUIBase.GetComponent<Canvas>();
-				TMP_Text text = widgetUIBase.GetComponentInChildren<TMP_Text>();
-				Button button = widgetUIBase.GetComponentInChildren<Button>();
-
 				Utils.AssignField(widgetUIBase, "_canvas", canvas);
-				Utils.AssignField(widgetUIBase, "_text", text);
-				Utils.AssignField(widgetUIBase, "_button", button);
+
+				// Text and button assigned by hand may live outside the view's hierarchy, so only fill empty fields.
+				if (!Utils.GetField<WidgetUIBase, TMP_Text>(widgetUIBase, "_text"))
+				{
+					TMP_Text text = widgetUIBase.GetComponentInChildren<TMP_Text>();
+					Utils.AssignField(widgetUIBase, "_text", text);
+				}
+
+				if (!Utils.GetField<WidgetUIBase, Button>(widgetUIBase, "_button"))
+				{
+					Button button = widgetUIBase.GetComponentInChildren<Button>();
+					Utils.AssignField(widgetUIBase, "_button", button);
+				}
 
 				Utils.MoveUp(widgetUIBase);
 			}

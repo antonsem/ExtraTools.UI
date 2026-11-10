@@ -20,9 +20,9 @@ namespace ExtraTools.UI.Editor
 
 		internal static void SetPanel(PanelBase panelBase)
 		{
-			PanelUIBase panelUIBase = panelBase.GetComponent<PanelUIBase>();
+			PanelUIBase panelUIBase = Utils.GetOrAddView<PanelBase, PanelUIBase>(panelBase, "_panelUI");
 
-			if (panelUIBase || Utils.TryAddType(panelBase, out panelUIBase))
+			if (panelUIBase)
 			{
 				Canvas canvas = panelUIBase.GetComponent<Canvas>();
 
