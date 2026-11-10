@@ -20,19 +20,18 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetDialog(DialogBase dialogBase)
 		{
-			DialogUIBase dialogUIBase = dialogBase.GetComponent<DialogUIBase>();
+			DialogUIBase dialogUIBase = Utils.GetOrAddView<DialogBase, DialogUIBase>(dialogBase, "DialogUI");
 
-			if (dialogUIBase || Utils.TryAddType(dialogBase, out dialogUIBase))
+			if (dialogUIBase)
 			{
 				Canvas canvas = dialogUIBase.GetComponent<Canvas>();
 
-				Utils.AssignFiled(dialogUIBase, "_canvas", canvas);
+				Utils.AssignField(dialogUIBase, "Canvas", canvas);
 
-				Utils.InvokeMethod(dialogUIBase, "SetDialogUI");
 				Utils.MoveUp(dialogUIBase);
 			}
 
-			Utils.AssignFiled(dialogBase, "_dialogUI", dialogUIBase);
+			Utils.AssignField(dialogBase, "DialogUI", dialogUIBase);
 			Utils.MoveUp(dialogBase);
 			EditorUtility.SetDirty(dialogBase.gameObject);
 		}

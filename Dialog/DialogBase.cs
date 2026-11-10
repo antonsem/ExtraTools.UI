@@ -1,25 +1,30 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
+using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Dialog
 {
 	public abstract class DialogBase : MonoBehaviour
 	{
-		[SerializeField] protected DialogUIBase _dialogUI;
+		[SerializeField, FormerlySerializedAs("_dialogUI")] protected DialogUIBase DialogUI;
 
-		protected UIManagerBase UIManager;
+		[PublicAPI] protected UIManagerBase UIManager;
 
 		#region Unity Methods
 
+		[PublicAPI]
 		protected virtual void OnEnable()
 		{
-			_dialogUI.OnClicked += OnClicked;
+			DialogUI.OnClicked += OnClicked;
 		}
 
+		[PublicAPI]
 		protected virtual void OnDisable()
 		{
-			_dialogUI.OnClicked -= OnClicked;
+			DialogUI.OnClicked -= OnClicked;
 		}
 
 		#endregion
@@ -29,25 +34,36 @@ namespace ExtraTools.UI.Dialog
 			UIManager = uiManager;
 		}
 
-		public virtual void Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false)
+		[PublicAPI]
+		public virtual UniTask Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false,
+			CancellationToken cancellationToken = default)
 		{
-			_dialogUI.Setup(message, answers);
-			UIManager.ShowDialog(this, hideOtherDialogs).Forget();
+			return UIManager.ShowDialog(this, () => DialogUI.Setup(message, answers), hideOtherDialogs,
+				cancellationToken);
 		}
 
-		protected internal virtual async UniTask ShowAsync()
+		[PublicAPI]
+		public virtual UniTask Hide(CancellationToken cancellationToken = default)
 		{
-			await _dialogUI.ShowAsync();
+			return UIManager.HideDialog(this, cancellationToken);
 		}
 
-		protected internal virtual async UniTask HideAsync()
+		[PublicAPI]
+		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _dialogUI.HideAsync();
+			await DialogUI.ShowAsync(cancellationToken);
 		}
 
+		[PublicAPI]
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
+		{
+			await DialogUI.HideAsync(cancellationToken);
+		}
+
+		[PublicAPI]
 		protected virtual void OnClicked()
 		{
-			UIManager.HideDialog(this).Forget();
+			Hide().Forget();
 		}
 	}
 }

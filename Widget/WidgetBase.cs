@@ -2,40 +2,61 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
+using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Widget
 {
 	public abstract class WidgetBase : MonoBehaviour
 	{
-		[SerializeField] protected WidgetUIBase _widgetUI;
+		[SerializeField, FormerlySerializedAs("_widgetUI")] protected WidgetUIBase WidgetUI;
 
-		protected UIManagerBase UIManager;
+		[PublicAPI] protected UIManagerBase UIManager;
+
 		private WidgetTask _task;
 
+		[PublicAPI]
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
-			_widgetUI.Initialize(this);
+			WidgetUI.Initialize(this);
 		}
 
-		public virtual void Show(string text, float showTime = 1, Action callback = null)
+		[PublicAPI]
+		public virtual UniTask Show(string text, float showTime = 1, Action callback = null,
+			CancellationToken cancellationToken = default)
 		{
-			UIManager.ShowWidget(new WidgetTask(this, text, showTime, callback));
+			return UIManager.ShowWidget(new WidgetTask(this, text, showTime, callback, cancellationToken));
 		}
 
+		[PublicAPI]
+		public virtual UniTask Hide(CancellationToken cancellationToken = default)
+		{
+			return UIManager.HideWidget(this, cancellationToken);
+		}
+
+		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(WidgetTask task,
 			CancellationToken cancellationToken = default)
 		{
 			_task = task;
-			await _widgetUI.ShowAsync(task);
-
-			await UniTask.Delay((int)(1000 * task.ShowTime), cancellationToken: cancellationToken)
-				.SuppressCancellationThrow();
-
-			await _widgetUI.HideAsync();
+			await WidgetUI.ShowAsync(task, cancellationToken);
 		}
 
+		[PublicAPI]
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
+		{
+			// A widget can outlive its scene while it waits to expire.
+			if (!WidgetUI)
+			{
+				return;
+			}
+
+			await WidgetUI.HideAsync(cancellationToken);
+		}
+
+		[PublicAPI]
 		protected internal virtual void OnClick()
 		{
 			_task.Callback?.Invoke();

@@ -1,3 +1,4 @@
+using System;
 using ExtraTools.UI.Panel;
 using ExtraTools.UI.Screen;
 using UnityEditor;
@@ -21,27 +22,33 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetScreen(ScreenBase screenBase)
 		{
-			ScreenUIBase screenUIBase = screenBase.GetComponent<ScreenUIBase>();
+			ScreenUIBase screenUIBase = Utils.GetOrAddView<ScreenBase, ScreenUIBase>(screenBase, "ScreenUI");
 
-			if (screenUIBase || Utils.TryAddType(screenBase, out screenUIBase))
+			if (screenUIBase)
 			{
 				Canvas canvas = screenUIBase.GetComponent<Canvas>();
 
-				Utils.AssignFiled(screenUIBase, "_canvas", canvas);
+				Utils.AssignField(screenUIBase, "Canvas", canvas);
 
 				Utils.MoveUp(screenUIBase);
 			}
 
-			Utils.AssignFiled(screenBase, "_screenUI", screenUIBase);
+			Utils.AssignField(screenBase, "ScreenUI", screenUIBase);
 
 			PanelBase[] panels = screenBase.GetComponentsInChildren<PanelBase>();
-			Utils.AssignFiled(screenBase, "_panels", panels);
+			Utils.AssignField(screenBase, "Panels", panels);
 
-			if (panels.Length > 0)
+			// Keep the configured defaults, minus panels that were deleted or no longer belong to this screen.
+			PanelBase[] defaultPanels = Utils.GetField<ScreenBase, PanelBase[]>(screenBase, "DefaultPanels")
+				?? Array.Empty<PanelBase>();
+			defaultPanels = Array.FindAll(defaultPanels, panel => panel && Array.IndexOf(panels, panel) >= 0);
+
+			if (defaultPanels.Length == 0 && panels.Length > 0)
 			{
-				PanelBase[] defaultPanels = { panels[0] };
-				Utils.AssignFiled(screenBase, "_defaultPanels", defaultPanels);
+				defaultPanels = new[] { panels[0] };
 			}
+
+			Utils.AssignField(screenBase, "DefaultPanels", defaultPanels);
 
 			foreach (PanelBase panel in panels)
 			{

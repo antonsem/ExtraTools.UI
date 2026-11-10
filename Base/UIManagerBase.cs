@@ -5,27 +5,22 @@ using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Dialog;
 using ExtraTools.UI.Screen;
 using ExtraTools.UI.Widget;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace ExtraTools.UI.Base
 {
 	public abstract class UIManagerBase : MonoBehaviour
 	{
-		private Dictionary<Type, ScreenBase> _screens;
-		private Dictionary<Type, DialogBase> _dialogs;
-		private Dictionary<Type, WidgetBase> _widgets;
-
 		private readonly List<DialogBase> _activeDialogs = new();
+		private readonly SemaphoreSlim _dialogTransition = new(1, 1);
+		private readonly SemaphoreSlim _screenTransition = new(1, 1);
 		private readonly Queue<WidgetTask> _widgetQueue = new();
-
-		public ScreenBase ActiveScreen { get; private set; }
-		public WidgetTask ActiveWidget { get; private set; }
-
-		public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
+		private Dictionary<Type, DialogBase> _dialogs;
 
 		private bool _isInitialized;
-
-		#region Constants
+		private Dictionary<Type, ScreenBase> _screens;
+		private Dictionary<Type, WidgetBase> _widgets;
 
 		private const string NoScreenError =
 			"<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
@@ -36,23 +31,34 @@ namespace ExtraTools.UI.Base
 		private const string NoWidgetError =
 			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
 
-		#endregion
+		[PublicAPI] public ScreenBase ActiveScreen { get; private set; }
 
+		[PublicAPI] public WidgetTask ActiveWidget { get; private set; }
+
+		[PublicAPI] public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
+
+		[PublicAPI]
 		protected virtual void Awake()
 		{
-			Initialize();
+			if (!_isInitialized)
+			{
+				Initialize();
+			}
 		}
 
+		[PublicAPI]
 		protected virtual void OnDestroy()
 		{
 			HideAllWidgets();
 		}
 
+		[PublicAPI]
 		public bool IsDialogActive(DialogBase dialog)
 		{
 			return _activeDialogs.Contains(dialog);
 		}
 
+		[PublicAPI]
 		public T GetScreen<T>() where T : ScreenBase
 		{
 			if (!_isInitialized)
@@ -71,6 +77,7 @@ namespace ExtraTools.UI.Base
 			return val.GetComponent<T>();
 		}
 
+		[PublicAPI]
 		public T GetDialog<T>() where T : DialogBase
 		{
 			if (!_isInitialized)
@@ -89,6 +96,7 @@ namespace ExtraTools.UI.Base
 			return val.GetComponent<T>();
 		}
 
+		[PublicAPI]
 		public T GetWidget<T>() where T : WidgetBase
 		{
 			if (!_isInitialized)
@@ -110,109 +118,211 @@ namespace ExtraTools.UI.Base
 		private void Initialize()
 		{
 			ScreenBase[] screens = transform.GetComponentsInChildren<ScreenBase>();
+			DialogBase[] dialogs = transform.GetComponentsInChildren<DialogBase>();
+			WidgetBase[] widgets = transform.GetComponentsInChildren<WidgetBase>();
 
 			_screens = new Dictionary<Type, ScreenBase>(screens.Length);
 			foreach (ScreenBase screen in screens)
 			{
-				screen.Initialize(this);
 				_screens.Add(screen.GetType(), screen);
 			}
-
-			DialogBase[] dialogs = transform.GetComponentsInChildren<DialogBase>();
 
 			_dialogs = new Dictionary<Type, DialogBase>(dialogs.Length);
 			foreach (DialogBase dialog in dialogs)
 			{
-				dialog.Initialize(this);
 				_dialogs.Add(dialog.GetType(), dialog);
 			}
-
-			WidgetBase[] widgets = transform.GetComponentsInChildren<WidgetBase>();
 
 			_widgets = new Dictionary<Type, WidgetBase>(widgets.Length);
 			foreach (WidgetBase widget in widgets)
 			{
-				widget.Initialize(this);
 				_widgets.Add(widget.GetType(), widget);
 			}
 
+			// Everything is registered first because a child's Initialize override may look up any other UI.
 			_isInitialized = true;
+
+			// Screens go last so they can already use dialogs and widgets.
+			foreach (DialogBase dialog in dialogs)
+			{
+				dialog.Initialize(this);
+			}
+
+			foreach (WidgetBase widget in widgets)
+			{
+				widget.Initialize(this);
+			}
+
+			foreach (ScreenBase screen in screens)
+			{
+				screen.Initialize(this);
+			}
 		}
 
 		internal async UniTask ShowScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
-			if (ActiveScreen)
-			{
-				await ActiveScreen.HideAsync();
-			}
+			// One at a time: overlapping animated transitions would each act on the same ActiveScreen and leave several
+			// screens visible.
+			await _screenTransition.WaitAsync(cancellationToken);
 
-			await screen.ShowAsync();
-			ActiveScreen = screen;
+			try
+			{
+				if (ActiveScreen == screen)
+				{
+					return;
+				}
+
+				if (ActiveScreen)
+				{
+					await ActiveScreen.HideAsync(cancellationToken);
+				}
+
+				// Set before the await so that a canceled show can still be hidden by the next screen.
+				ActiveScreen = screen;
+				await screen.ShowAsync(cancellationToken);
+			}
+			finally
+			{
+				_screenTransition.Release();
+			}
 		}
 
 		internal async UniTask HideScreen(ScreenBase screen, CancellationToken cancellationToken = default)
 		{
-			await screen.HideAsync();
+			await _screenTransition.WaitAsync(cancellationToken);
 
-			if (screen == ActiveScreen)
+			try
 			{
-				ActiveScreen = null;
+				await screen.HideAsync(cancellationToken);
+
+				if (screen == ActiveScreen)
+				{
+					ActiveScreen = null;
+				}
+			}
+			finally
+			{
+				_screenTransition.Release();
 			}
 		}
 
-		internal async UniTask ShowDialog(DialogBase dialog, bool hideRest = true)
+		internal async UniTask ShowDialog(DialogBase dialog, Action setup, bool hideRest,
+			CancellationToken cancellationToken = default)
 		{
-			if (hideRest)
-			{
-				await HideAllDialogs();
-			}
+			// One at a time, and hiding the rest shares the turn with the show: otherwise two calls that each hide the
+			// others would interleave and leave both dialogs open.
+			await _dialogTransition.WaitAsync(cancellationToken);
 
-			dialog.transform.SetAsLastSibling();
-			await dialog.ShowAsync();
-			_activeDialogs.Add(dialog);
+			try
+			{
+				if (hideRest)
+				{
+					await HideAllDialogs(cancellationToken);
+				}
+
+				// After the hide, because hiding clears a dialog's buttons and this dialog may be one of those hidden.
+				setup();
+				dialog.transform.SetAsLastSibling();
+
+				if (_activeDialogs.Contains(dialog))
+				{
+					return;
+				}
+
+				// Added before the await so that a failed show can still be hidden later.
+				_activeDialogs.Add(dialog);
+				await dialog.ShowAsync(cancellationToken);
+			}
+			finally
+			{
+				_dialogTransition.Release();
+			}
 		}
 
-		internal async UniTask HideDialog(DialogBase dialog)
+		internal async UniTask HideDialog(DialogBase dialog, CancellationToken cancellationToken = default)
 		{
-			await dialog.HideAsync();
+			await _dialogTransition.WaitAsync(cancellationToken);
 
-			if (!_activeDialogs.Contains(dialog))
+			try
 			{
-				Debug.LogWarning($"Dialog {dialog} is not registered as active in {name}", this);
+				if (!_activeDialogs.Contains(dialog))
+				{
+					Debug.LogWarning($"Dialog {dialog} is not registered as active in {name}", this);
+					return;
+				}
+
+				await DoHideDialog(dialog, cancellationToken);
 			}
-			else
+			finally
 			{
-				_activeDialogs.Remove(dialog);
+				_dialogTransition.Release();
 			}
 		}
 
-		internal async UniTask HideAllDialogs()
+		private async UniTask HideAllDialogs(CancellationToken cancellationToken = default)
 		{
-			UniTask[] tasks = new UniTask[_activeDialogs.Count];
+			DialogBase[] dialogs = _activeDialogs.ToArray();
+			UniTask[] tasks = new UniTask[dialogs.Length];
 
-			for (int i = 0; i < _activeDialogs.Count; i++)
+			for (int i = 0; i < dialogs.Length; i++)
 			{
-				tasks[i] = _activeDialogs[i].HideAsync();
+				tasks[i] = DoHideDialog(dialogs[i], cancellationToken);
 			}
 
 			await UniTask.WhenAll(tasks);
-			_activeDialogs.Clear();
 		}
 
-		internal void ShowWidget(WidgetTask task)
+		private async UniTask DoHideDialog(DialogBase dialog, CancellationToken cancellationToken)
+		{
+			await dialog.HideAsync(cancellationToken);
+			_activeDialogs.Remove(dialog);
+		}
+
+		internal UniTask ShowWidget(WidgetTask task)
 		{
 			_widgetQueue.Enqueue(task);
 			PlayWidgetQueue().Forget();
+			return task.Shown;
 		}
 
+		internal async UniTask HideWidget(WidgetBase widget, CancellationToken cancellationToken = default)
+		{
+			// A copy, because stopping a task can resume code that queues another widget.
+			foreach (WidgetTask task in _widgetQueue.ToArray())
+			{
+				if (task.Base == widget)
+				{
+					task.StopTask();
+				}
+			}
+
+			WidgetTask active = ActiveWidget;
+
+			if (active == null || active.Base != widget)
+			{
+				return;
+			}
+
+			active.StopTask();
+
+			// The token can only end this wait. The hide itself always finishes.
+			await active.Hidden.AttachExternalCancellation(cancellationToken);
+		}
+
+		[PublicAPI]
 		protected void HideActiveWidget()
 		{
 			ActiveWidget?.StopTask();
 		}
 
+		[PublicAPI]
 		protected void HideAllWidgets()
 		{
-			_widgetQueue.Clear();
+			while (_widgetQueue.Count > 0)
+			{
+				_widgetQueue.Dequeue().StopTask();
+			}
+
 			HideActiveWidget();
 		}
 
@@ -223,9 +333,48 @@ namespace ExtraTools.UI.Base
 				return;
 			}
 
-			ActiveWidget = _widgetQueue.Dequeue();
-			await ActiveWidget.Base.ShowAsync(ActiveWidget);
+			// Widgets stopped while queued have already released their callers and are never shown.
+			while (_widgetQueue.Count > 0 && _widgetQueue.Peek().IsStopped)
+			{
+				_widgetQueue.Dequeue();
+			}
+
+			if (_widgetQueue.Count == 0)
+			{
+				return;
+			}
+
+			WidgetTask task = _widgetQueue.Dequeue();
+			ActiveWidget = task;
+			task.MarkStarted();
+
+			try
+			{
+				// A stop can cancel the show animation, but the widget still has to hide afterward.
+				bool isCancelled = await task.Base.ShowAsync(task, task.CancellationToken).SuppressCancellationThrow();
+				task.MarkShown();
+
+				if (!isCancelled)
+				{
+					await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: task.CancellationToken)
+						.SuppressCancellationThrow();
+				}
+
+				// ReSharper disable once MethodSupportsCancellation
+				// The token is left out on purpose: after a stop it is already canceled and the hide must still finish.
+				await task.Base.HideAsync();
+			}
+			catch (OperationCanceledException)
+			{
+				// Stopping a widget is expected, and subclasses overriding ShowAsync may let this through.
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception, this);
+			}
+
 			ActiveWidget = null;
+			task.MarkFinished();
 
 			if (_widgetQueue.Count > 0)
 			{

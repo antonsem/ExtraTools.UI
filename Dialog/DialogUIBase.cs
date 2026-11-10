@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace ExtraTools.UI.Dialog
 {
+	[RequireComponent(typeof(Canvas))]
 	public abstract class DialogUIBase : MonoBehaviour
 	{
 		internal Action OnClicked;
-		[SerializeField] protected Canvas _canvas;
+		[SerializeField, FormerlySerializedAs("_canvas")] protected Canvas Canvas;
 		[SerializeField] private GameObject _buttonPrefab;
 		[SerializeField] private TMP_Text _message;
 		[SerializeField] private Transform _buttonsParent;
@@ -20,6 +23,7 @@ namespace ExtraTools.UI.Dialog
 
 		private readonly List<(Button, TMP_Text)> _buttons = new(2);
 
+		[PublicAPI]
 		protected virtual void OnDisable()
 		{
 			ClearButtons();
@@ -27,9 +31,10 @@ namespace ExtraTools.UI.Dialog
 
 		internal void Setup(string text, params DialogAnswer[] answers)
 		{
+			ClearButtons();
 			_message.text = text;
 
-			if (answers != null)
+			if (answers?.Length > 0)
 			{
 				SetupAnswers(answers);
 			}
@@ -84,16 +89,18 @@ namespace ExtraTools.UI.Dialog
 			}
 		}
 
+		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			_canvas.enabled = true;
+			Canvas.enabled = true;
 			await UniTask.CompletedTask;
 		}
 
+		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			ClearButtons();
-			_canvas.enabled = false;
+			Canvas.enabled = false;
 			await UniTask.CompletedTask;
 		}
 	}

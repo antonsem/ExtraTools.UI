@@ -20,18 +20,18 @@ namespace ExtraTools.UI.Editor
 
 		internal static void SetPanel(PanelBase panelBase)
 		{
-			PanelUIBase panelUIBase = panelBase.GetComponent<PanelUIBase>();
+			PanelUIBase panelUIBase = Utils.GetOrAddView<PanelBase, PanelUIBase>(panelBase, "PanelUI");
 
-			if (panelUIBase || Utils.TryAddType(panelBase, out panelUIBase))
+			if (panelUIBase)
 			{
 				Canvas canvas = panelUIBase.GetComponent<Canvas>();
 
-				Utils.AssignFiled(panelUIBase, "_canvas", canvas);
+				Utils.AssignField(panelUIBase, "Canvas", canvas);
 
 				Utils.MoveUp(panelUIBase);
 			}
 
-			Utils.AssignFiled(panelBase, "_panelUI", panelUIBase);
+			Utils.AssignField(panelBase, "PanelUI", panelUIBase);
 			Utils.MoveUp(panelBase);
 			EditorUtility.SetDirty(panelBase.gameObject);
 		}

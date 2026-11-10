@@ -1,11 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace ExtraTools.UI.Dialog
 {
 	public struct DialogAnswer
 	{
-		public readonly string Text;
-		public readonly Action Callback;
+		[PublicAPI] public readonly string Text;
+		[PublicAPI] public readonly Action Callback;
 
 		public DialogAnswer(string text, Action callback = null)
 		{

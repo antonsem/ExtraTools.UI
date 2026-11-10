@@ -3,6 +3,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 namespace ExtraTools.UI.Editor
 {
@@ -21,22 +22,30 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetWidget(WidgetBase widgetBase)
 		{
-			WidgetUIBase widgetUIBase = widgetBase.GetComponent<WidgetUIBase>();
+			WidgetUIBase widgetUIBase = Utils.GetOrAddView<WidgetBase, WidgetUIBase>(widgetBase, "WidgetUI");
 
-			if (widgetUIBase || Utils.TryAddType(widgetBase, out widgetUIBase))
+			if (widgetUIBase)
 			{
 				Canvas canvas = widgetUIBase.GetComponent<Canvas>();
-				TMP_Text text = widgetUIBase.GetComponentInChildren<TMP_Text>();
-				UnityEngine.UI.Button button = widgetUIBase.GetComponentInChildren<UnityEngine.UI.Button>();
+				Utils.AssignField(widgetUIBase, "Canvas", canvas);
 
-				Utils.AssignFiled(widgetUIBase, "_canvas", canvas);
-				Utils.AssignFiled(widgetUIBase, "_text", text);
-				Utils.AssignFiled(widgetUIBase, "_button", button);
+				// Text and button assigned by hand may live outside the view's hierarchy, so only fill empty fields.
+				if (!Utils.GetField<WidgetUIBase, TMP_Text>(widgetUIBase, "Text"))
+				{
+					TMP_Text text = widgetUIBase.GetComponentInChildren<TMP_Text>();
+					Utils.AssignField(widgetUIBase, "Text", text);
+				}
+
+				if (!Utils.GetField<WidgetUIBase, Button>(widgetUIBase, "_button"))
+				{
+					Button button = widgetUIBase.GetComponentInChildren<Button>();
+					Utils.AssignField(widgetUIBase, "_button", button);
+				}
 
 				Utils.MoveUp(widgetUIBase);
 			}
 
-			Utils.AssignFiled(widgetBase, "_widgetUI", widgetUIBase);
+			Utils.AssignField(widgetBase, "WidgetUI", widgetUIBase);
 			Utils.MoveUp(widgetBase);
 			EditorUtility.SetDirty(widgetBase.gameObject);
 		}

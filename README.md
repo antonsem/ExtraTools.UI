@@ -25,12 +25,12 @@ Example:
 
 ```csharp
 
-[SerializedField] private UIManager _uiManager;
+[SerializeField] private UIManager _uiManager;
 
 private void Start()
 {
     MainMenuScreen mainMenuScreen = _uiManager.GetScreen<MainMenuScreen>();
-    mainMenuScreen.Show();
+    mainMenuScreen.Show().Forget();
 }
 ```
 
@@ -44,6 +44,10 @@ parameters can be introduced in the implementation.
 Represents a single screen in the UI. A single screen can have multiple panels. Only
 child classes can have access to panels.
 
+Screen transitions run one at a time, so the last `Show()` or `Hide()` always decides what
+is left on screen. Do not await another screen's `Show()` or `Hide()` from a `ShowAsync` or
+`HideAsync` override, because it would wait for itself forever. Use `.Forget()` there instead.
+
 ### Screen UI
 
 Responsible for relaying input to the screen and visual presentation of a screen
@@ -53,6 +57,10 @@ Responsible for relaying input to the screen and visual presentation of a screen
 Represents a part of a screen. Not mandatory, but useful if only a part of the screen needs
 to change. An example can be a settings screen with multiple tabs for different settings.
 
+Panel changes on a screen run one at a time. Do not await another panel change on the same
+screen from a panel's `ShowAsync` or `HideAsync` override, because it would wait for itself
+forever. Use `.Forget()` there instead.
+
 ### Dialog
 
 Represents a pop-up dialog window. Useful to inform the user or to ask an immediate
@@ -61,10 +69,16 @@ a time.
 
 Requires a text and an answer option to set up.
 
+A dialog closes when one of its answers is clicked. To close it from code, call `Hide`.
+
 ### Widget
 
 Represents a notification or a short message. Can be clicked on and has expiration time.
 Widget notifications can be stacked but will be shown sequentially.
+
+A widget goes away by itself after its show time. `Show` completes once the widget is
+visible. To close it early, call `Hide`, which also drops that widget's queued entries and
+completes once the widget has hidden.
 
 ### Automatic Setup
 
@@ -99,7 +113,11 @@ automatically
 
 1. Add the UI component
 2. Set UI's `Canvas` field
-3. Set the UI component to the `_screenUI` field
+3. Set the UI component to the `ScreenUI` field
 
 The same goes for all components which require a UI counterpart. Note that this
 is not mandatory and will not throw an error if not set as described.
+
+Setup keeps what is already assigned. A UI component set by hand, even one on another
+GameObject, is not replaced, and a screen keeps its default panels as long as they are
+still its children. Each button press can be undone in one step.
