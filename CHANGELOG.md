@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `WidgetBase.Hide`, to stop a widget and drop its queued entries. It completes once the widget has hidden
 - `WidgetBase.HideAsync`, to override how a widget hides
 - `Utils.GetField`, to read a serialized field the way `Utils.AssignField` writes it
+- "Extra Tools > UI > Reserialize All Assets" menu item, which rewrites every scene, prefab and asset with the current field names
 - `Utils.GetOrAddView`, which returns a presenter's assigned view, or finds or adds one by the `<Presenter>UI` convention
 
 ### Changed
@@ -26,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `CancellationToken` of `ScreenBase.Hide<T>` is now optional
 - The `additive` parameter of `ScreenBase.Show<T>` is now optional
 - `ScreenUIBase._canvas` is now `protected`, matching the other views
-- Renamed the protected serialized fields to `PascalCase`: `_screenUI`, `_panels`, `_defaultPanels`, `_panelUI`, `_dialogUI`, `_widgetUI`, `_canvas` and `_text` are now `ScreenUI`, `Panels`, `DefaultPanels`, `PanelUI`, `DialogUI`, `WidgetUI`, `Canvas` and `Text`. Subclasses using them need the new names. Values in scenes and prefabs carry over through `[FormerlySerializedAs]`, which will be removed in the next major version, so reserialize your assets before upgrading to it
+- Renamed the protected serialized fields to `PascalCase`: `_screenUI`, `_panels`, `_defaultPanels`, `_panelUI`, `_dialogUI`, `_widgetUI`, `_canvas` and `_text` are now `ScreenUI`, `Panels`, `DefaultPanels`, `PanelUI`, `DialogUI`, `WidgetUI`, `Canvas` and `Text`. Subclasses using them need the new names. Values in scenes and prefabs carry over through `[FormerlySerializedAs]`, which will be removed in the next major version, so reserialize your assets with "Extra Tools > UI > Reserialize All Assets" before upgrading to it
 - Panel, dialog and widget views now require a `Canvas`, matching screen views
 
 ### Fixed
