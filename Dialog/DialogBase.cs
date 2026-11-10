@@ -3,27 +3,28 @@ using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Dialog
 {
 	public abstract class DialogBase : MonoBehaviour
 	{
-		[SerializeField] protected DialogUIBase _dialogUI;
+		[SerializeField, FormerlySerializedAs("_dialogUI")] protected DialogUIBase DialogUI;
 
-		protected UIManagerBase UIManager;
+		[PublicAPI] protected UIManagerBase UIManager;
 
 		#region Unity Methods
 
 		[PublicAPI]
 		protected virtual void OnEnable()
 		{
-			_dialogUI.OnClicked += OnClicked;
+			DialogUI.OnClicked += OnClicked;
 		}
 
 		[PublicAPI]
 		protected virtual void OnDisable()
 		{
-			_dialogUI.OnClicked -= OnClicked;
+			DialogUI.OnClicked -= OnClicked;
 		}
 
 		#endregion
@@ -37,7 +38,7 @@ namespace ExtraTools.UI.Dialog
 		public virtual UniTask Show(string message, DialogAnswer[] answers = null, bool hideOtherDialogs = false,
 			CancellationToken cancellationToken = default)
 		{
-			return UIManager.ShowDialog(this, () => _dialogUI.Setup(message, answers), hideOtherDialogs,
+			return UIManager.ShowDialog(this, () => DialogUI.Setup(message, answers), hideOtherDialogs,
 				cancellationToken);
 		}
 
@@ -50,13 +51,13 @@ namespace ExtraTools.UI.Dialog
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _dialogUI.ShowAsync(cancellationToken);
+			await DialogUI.ShowAsync(cancellationToken);
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
-			await _dialogUI.HideAsync(cancellationToken);
+			await DialogUI.HideAsync(cancellationToken);
 		}
 
 		[PublicAPI]

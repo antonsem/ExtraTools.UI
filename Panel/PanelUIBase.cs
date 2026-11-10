@@ -2,16 +2,16 @@
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Panel
 {
 	[RequireComponent(typeof(Canvas))]
 	public abstract class PanelUIBase : MonoBehaviour
 	{
-		[SerializeField] protected Canvas _canvas;
+		[SerializeField, FormerlySerializedAs("_canvas")] protected Canvas Canvas;
 
-		[PublicAPI]
-		protected PanelBase PanelBase;
+		[PublicAPI] protected PanelBase PanelBase;
 
 		[PublicAPI]
 		protected internal virtual void Initialize(PanelBase panelBase)
@@ -22,14 +22,14 @@ namespace ExtraTools.UI.Panel
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			_canvas.enabled = true;
+			Canvas.enabled = true;
 			await UniTask.CompletedTask;
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
-			_canvas.enabled = false;
+			Canvas.enabled = false;
 			await UniTask.CompletedTask;
 		}
 	}

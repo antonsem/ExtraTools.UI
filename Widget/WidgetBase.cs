@@ -4,15 +4,15 @@ using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Widget
 {
 	public abstract class WidgetBase : MonoBehaviour
 	{
-		[SerializeField] protected WidgetUIBase _widgetUI;
+		[SerializeField, FormerlySerializedAs("_widgetUI")] protected WidgetUIBase WidgetUI;
 
-		[PublicAPI]
-		protected UIManagerBase UIManager;
+		[PublicAPI] protected UIManagerBase UIManager;
 
 		private WidgetTask _task;
 
@@ -20,7 +20,7 @@ namespace ExtraTools.UI.Widget
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
-			_widgetUI.Initialize(this);
+			WidgetUI.Initialize(this);
 		}
 
 		[PublicAPI]
@@ -41,21 +41,22 @@ namespace ExtraTools.UI.Widget
 			CancellationToken cancellationToken = default)
 		{
 			_task = task;
-			await _widgetUI.ShowAsync(task, cancellationToken);
+			await WidgetUI.ShowAsync(task, cancellationToken);
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			// A widget can outlive its scene while it waits to expire.
-			if (!_widgetUI)
+			if (!WidgetUI)
 			{
 				return;
 			}
 
-			await _widgetUI.HideAsync(cancellationToken);
+			await WidgetUI.HideAsync(cancellationToken);
 		}
 
+		[PublicAPI]
 		protected internal virtual void OnClick()
 		{
 			_task.Callback?.Invoke();

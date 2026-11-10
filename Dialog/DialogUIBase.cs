@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace ExtraTools.UI.Dialog
@@ -13,7 +14,7 @@ namespace ExtraTools.UI.Dialog
 	public abstract class DialogUIBase : MonoBehaviour
 	{
 		internal Action OnClicked;
-		[SerializeField] protected Canvas _canvas;
+		[SerializeField, FormerlySerializedAs("_canvas")] protected Canvas Canvas;
 		[SerializeField] private GameObject _buttonPrefab;
 		[SerializeField] private TMP_Text _message;
 		[SerializeField] private Transform _buttonsParent;
@@ -91,7 +92,7 @@ namespace ExtraTools.UI.Dialog
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			_canvas.enabled = true;
+			Canvas.enabled = true;
 			await UniTask.CompletedTask;
 		}
 
@@ -99,7 +100,7 @@ namespace ExtraTools.UI.Dialog
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			ClearButtons();
-			_canvas.enabled = false;
+			Canvas.enabled = false;
 			await UniTask.CompletedTask;
 		}
 	}

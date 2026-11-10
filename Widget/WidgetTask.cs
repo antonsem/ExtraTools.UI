@@ -7,21 +7,23 @@ namespace ExtraTools.UI.Widget
 {
 	public class WidgetTask
 	{
-		public readonly float ShowTime;
-		public readonly string Text;
-		public readonly Action Callback;
-		public readonly WidgetBase Base;
+		[PublicAPI] public readonly float ShowTime;
+		[PublicAPI] public readonly string Text;
+		[PublicAPI] public readonly Action Callback;
+		[PublicAPI] public readonly WidgetBase Base;
 
-		public CancellationToken CancellationToken => _cancellationTokenSource.Token;
+		[PublicAPI] public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
 		private readonly CancellationTokenSource _cancellationTokenSource;
 		private readonly UniTaskCompletionSource _shown = new();
 		private readonly UniTaskCompletionSource _hidden = new();
-		private CancellationTokenRegistration _externalCancellation;
+		private readonly CancellationTokenRegistration _externalCancellation;
 		private bool _isStarted;
 
 		internal UniTask Shown => _shown.Task;
+
 		internal UniTask Hidden => _hidden.Task;
+
 		internal bool IsStopped => _cancellationTokenSource.IsCancellationRequested;
 
 		internal WidgetTask(WidgetBase widgetBase, string text, float showTime, Action callback,

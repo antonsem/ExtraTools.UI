@@ -11,6 +11,12 @@ namespace ExtraTools.UI.Editor
 {
 	public static class Utils
 	{
+		[MenuItem("Extra Tools/UI/Reserialize All Assets")]
+		private static void ReserializeAll()
+		{
+			AssetDatabase.ForceReserializeAssets();
+		}
+
 		public static void InvokeMethod(Object obj, string methodName)
 		{
 			MethodInfo dynMethod = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);

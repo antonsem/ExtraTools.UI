@@ -5,13 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - 2026-11-10
 
 ### Added
 - `[PublicAPI]` annotations on the members meant to be called or overridden by consuming projects
 - `DialogBase.Hide`, to close a dialog from code
 - `WidgetBase.Hide`, to stop a widget and drop its queued entries. It completes once the widget has hidden
 - `WidgetBase.HideAsync`, to override how a widget hides
+- `Utils.GetField`, to read a serialized field the way `Utils.AssignField` writes it
+- `Utils.GetOrAddView`, which returns a presenter's assigned view, or finds or adds one by the `<Presenter>UI` convention
 
 ### Changed
 - `WidgetBase.Show` now returns a `UniTask` that completes once the widget is visible, and takes a `CancellationToken` that stops the widget. Calls from sync code need `.Forget()`
@@ -22,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `Utils.AssignFiled` to `Utils.AssignField`. Editor code calling the old name needs updating
 - Showing the already active screen no longer hides and re-shows it. `Show()` only resets its panels to the defaults
 - The `CancellationToken` of `ScreenBase.Hide<T>` is now optional
+- The `additive` parameter of `ScreenBase.Show<T>` is now optional
 - `ScreenUIBase._canvas` is now `protected`, matching the other views
+- Renamed the protected serialized fields to `PascalCase`: `_screenUI`, `_panels`, `_defaultPanels`, `_panelUI`, `_dialogUI`, `_widgetUI`, `_canvas` and `_text` are now `ScreenUI`, `Panels`, `DefaultPanels`, `PanelUI`, `DialogUI`, `WidgetUI`, `Canvas` and `Text`. Subclasses using them need the new names. Values in scenes and prefabs carry over through `[FormerlySerializedAs]`, which will be removed in the next major version, so reserialize your assets before upgrading to it
 - Panel, dialog and widget views now require a `Canvas`, matching screen views
 
 ### Fixed

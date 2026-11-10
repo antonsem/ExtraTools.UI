@@ -3,33 +3,33 @@ using Cysharp.Threading.Tasks;
 using ExtraTools.UI.Screen;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Panel
 {
 	public abstract class PanelBase : MonoBehaviour
 	{
-		[SerializeField] protected PanelUIBase _panelUI;
+		[SerializeField, FormerlySerializedAs("_panelUI")] protected PanelUIBase PanelUI;
 
-		[PublicAPI]
-		protected ScreenBase Screen;
+		[PublicAPI] protected ScreenBase Screen;
 
 		[PublicAPI]
 		protected internal virtual void Initialize(ScreenBase screenBase)
 		{
 			Screen = screenBase;
-			_panelUI.Initialize(this);
+			PanelUI.Initialize(this);
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _panelUI.ShowAsync(cancellationToken);
+			await PanelUI.ShowAsync(cancellationToken);
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
-			await _panelUI.HideAsync(cancellationToken);
+			await PanelUI.HideAsync(cancellationToken);
 		}
 	}
 }

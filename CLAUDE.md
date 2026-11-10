@@ -27,16 +27,16 @@ Root namespace `ExtraTools.UI`, one sub-namespace per folder (`ExtraTools.UI.Scr
 - Showing and hiding is UniTask based (`ShowAsync` / `HideAsync`) so consumers can override with animations. The default view implementations essentially just toggle `Canvas.enabled`. Keep new lifecycle methods UniTask based in the same way, not `Task`.
 - Lifecycle hooks are `protected internal virtual`. The exceptions are the panel methods on `ScreenBase` (`ShowPanelAsync`, `HidePanelAsync`, `HidePanelsAsync`) and `DialogBase.OnClicked`, which are `protected virtual`, and `DialogBase.Initialize`, which is `internal` and can't be overridden. Public API (`Show`, `Hide`, `GetX<T>`) is what consuming projects call. Keep the surface small. Anything a consumer should not call stays `internal`.
 - Consumers add `Show(...)` overloads with their own parameters when a screen needs data. Don't add data-passing to the base classes.
-- `README.md` states: only child classes can access panels. Panel references (`_panels`, `GetPanel<T>`, `ActivePanels`) stay non-public. Outside callers can only pick which panel is shown or hidden through `ScreenBase.Show<T>` / `Hide<T>`. Don't expose more than that.
+- `README.md` states: only child classes can access panels. Panel references (`Panels`, `GetPanel<T>`, `ActivePanels`) stay non-public. Outside callers can only pick which panel is shown or hidden through `ScreenBase.Show<T>` / `Hide<T>`. Don't expose more than that.
 
 ## Automatic setup (editor)
 The inspector setup buttons (e.g. "Set Screen" on `ScreenBase`) rely on conventions. Breaking them silently breaks the workflow for every consumer.
 - A presenter class and its view live next to each other, and the view is named `<PresenterName>UI` in the same namespace and assembly (`MainMenuScreen` → `MainMenuScreenUI`). `Utils.TryAddType` finds it by that name.
-- The editor assigns serialized fields **by name through reflection** (`Utils.AssignField`): `_canvas`, `_screenUI`, `_panels`, `_defaultPanels`, `_panelUI`, `_dialogUI`, `_widgetUI` and others. Renaming any of these fields in the runtime code requires updating the matching editor script in the same change.
+- The editor assigns serialized fields **by name through reflection** (`Utils.AssignField`): `Canvas`, `ScreenUI`, `Panels`, `DefaultPanels`, `PanelUI`, `DialogUI`, `WidgetUI`, `Text` and others. Renaming any of these fields in the runtime code requires updating the matching editor script in the same change.
 - Setup must not throw when the convention isn't followed. Missing UI counterpart means "do nothing", as the README promises.
 
 ## Coding conventions
-- Serialized fields are `[SerializeField] private` by default. `protected` is used where subclasses in consuming projects need the reference (`_screenUI`, `_panels`, `_canvas`, ...). Do not make them public.
+- Serialized fields are `[SerializeField] private` by default. `protected` is used where subclasses in consuming projects need the reference (`ScreenUI`, `Panels`, `Canvas`, ...). Do not make them public. Private serialized fields are `_camelCase`, protected ones are `PascalCase` without a prefix.
 - No `GameObject.Find` or `FindObjectOfType`. The manager discovers its children with `GetComponentsInChildren` during initialization.
 - Cache component references in `Awake` / `Initialize`, not `Update`.
 - Keep `MonoBehaviour` classes focused. Move pure logic into plain C# classes (like `WidgetTask`) so it can be unit tested.
@@ -74,4 +74,4 @@ The inspector setup buttons (e.g. "Set Screen" on `ScreenBase`) rely on conventi
 ## Debugging
 - When investigating a bug, read the related scripts first and state the likely cause before proposing a fix.
 - Ask for the console or Player log if a runtime error is involved.
-- Most issues come from setup, not logic: a missing or duplicated component type under the manager (duplicate types throw on registration), unassigned `_canvas` / `_screenUI` fields, or a view not named `<Presenter>UI`. Check those first.
+- Most issues come from setup, not logic: a missing or duplicated component type under the manager (duplicate types throw on registration), unassigned `Canvas` / `ScreenUI` fields, or a view not named `<Presenter>UI`. Check those first.

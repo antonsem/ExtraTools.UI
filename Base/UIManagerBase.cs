@@ -31,14 +31,11 @@ namespace ExtraTools.UI.Base
 		private const string NoWidgetError =
 			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
 
-		[PublicAPI]
-		public ScreenBase ActiveScreen { get; private set; }
+		[PublicAPI] public ScreenBase ActiveScreen { get; private set; }
 
-		[PublicAPI]
-		public WidgetTask ActiveWidget { get; private set; }
+		[PublicAPI] public WidgetTask ActiveWidget { get; private set; }
 
-		[PublicAPI]
-		public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
+		[PublicAPI] public IReadOnlyList<DialogBase> ActiveDialogs => _activeDialogs;
 
 		[PublicAPI]
 		protected virtual void Awake()

@@ -22,18 +22,18 @@ namespace ExtraTools.UI.Editor
 
 		public static void SetWidget(WidgetBase widgetBase)
 		{
-			WidgetUIBase widgetUIBase = Utils.GetOrAddView<WidgetBase, WidgetUIBase>(widgetBase, "_widgetUI");
+			WidgetUIBase widgetUIBase = Utils.GetOrAddView<WidgetBase, WidgetUIBase>(widgetBase, "WidgetUI");
 
 			if (widgetUIBase)
 			{
 				Canvas canvas = widgetUIBase.GetComponent<Canvas>();
-				Utils.AssignField(widgetUIBase, "_canvas", canvas);
+				Utils.AssignField(widgetUIBase, "Canvas", canvas);
 
 				// Text and button assigned by hand may live outside the view's hierarchy, so only fill empty fields.
-				if (!Utils.GetField<WidgetUIBase, TMP_Text>(widgetUIBase, "_text"))
+				if (!Utils.GetField<WidgetUIBase, TMP_Text>(widgetUIBase, "Text"))
 				{
 					TMP_Text text = widgetUIBase.GetComponentInChildren<TMP_Text>();
-					Utils.AssignField(widgetUIBase, "_text", text);
+					Utils.AssignField(widgetUIBase, "Text", text);
 				}
 
 				if (!Utils.GetField<WidgetUIBase, Button>(widgetUIBase, "_button"))
@@ -45,7 +45,7 @@ namespace ExtraTools.UI.Editor
 				Utils.MoveUp(widgetUIBase);
 			}
 
-			Utils.AssignField(widgetBase, "_widgetUI", widgetUIBase);
+			Utils.AssignField(widgetBase, "WidgetUI", widgetUIBase);
 			Utils.MoveUp(widgetBase);
 			EditorUtility.SetDirty(widgetBase.gameObject);
 		}

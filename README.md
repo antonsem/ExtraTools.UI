@@ -69,6 +69,8 @@ a time.
 
 Requires a text and an answer option to set up.
 
+A dialog closes when one of its answers is clicked. To close it from code, call `Hide`.
+
 ### Widget
 
 Represents a notification or a short message. Can be clicked on and has expiration time.
@@ -111,7 +113,11 @@ automatically
 
 1. Add the UI component
 2. Set UI's `Canvas` field
-3. Set the UI component to the `_screenUI` field
+3. Set the UI component to the `ScreenUI` field
 
 The same goes for all components which require a UI counterpart. Note that this
 is not mandatory and will not throw an error if not set as described.
+
+Setup keeps what is already assigned. A UI component set by hand, even one on another
+GameObject, is not replaced, and a screen keeps its default panels as long as they are
+still its children. Each button press can be undone in one step.

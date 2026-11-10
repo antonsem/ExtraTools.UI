@@ -6,20 +6,19 @@ using ExtraTools.UI.Base;
 using ExtraTools.UI.Panel;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ExtraTools.UI.Screen
 {
 	public abstract class ScreenBase : MonoBehaviour
 	{
-		[SerializeField] protected ScreenUIBase _screenUI;
-		[SerializeField] protected PanelBase[] _panels;
-		[SerializeField] protected PanelBase[] _defaultPanels;
+		[SerializeField, FormerlySerializedAs("_screenUI")] protected ScreenUIBase ScreenUI;
+		[SerializeField, FormerlySerializedAs("_panels")] protected PanelBase[] Panels;
+		[SerializeField, FormerlySerializedAs("_defaultPanels")] protected PanelBase[] DefaultPanels;
 
-		[PublicAPI]
-		protected UIManagerBase UIManager;
+		[PublicAPI] protected UIManagerBase UIManager;
 
-		[PublicAPI]
-		protected IReadOnlyList<PanelBase> ActivePanels => _activePanels;
+		[PublicAPI] protected IReadOnlyList<PanelBase> ActivePanels => _activePanels;
 
 		private List<PanelBase> _activePanels;
 
@@ -33,10 +32,10 @@ namespace ExtraTools.UI.Screen
 		protected internal virtual void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
-			_activePanels = new List<PanelBase>(_panels.Length);
-			_screenUI.Initialize(this);
+			_activePanels = new List<PanelBase>(Panels.Length);
+			ScreenUI.Initialize(this);
 			_panelsDictionary = new Dictionary<Type, PanelBase>();
-			foreach (PanelBase panel in _panels)
+			foreach (PanelBase panel in Panels)
 			{
 				_panelsDictionary.Add(panel.GetType(), panel);
 				panel.Initialize(this);
@@ -58,7 +57,8 @@ namespace ExtraTools.UI.Screen
 		}
 
 		[PublicAPI]
-		public async UniTask Show<T>(bool additive, CancellationToken cancellationToken = default) where T : PanelBase
+		public async UniTask Show<T>(bool additive = false, CancellationToken cancellationToken = default)
+			where T : PanelBase
 		{
 			await UIManager.ShowScreen(this, cancellationToken);
 			await ShowPanelAsync<T>(additive, cancellationToken);
@@ -185,28 +185,28 @@ namespace ExtraTools.UI.Screen
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
-			await _screenUI.ShowAsync(cancellationToken);
+			await ScreenUI.ShowAsync(cancellationToken);
 		}
 
 		[PublicAPI]
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			await HidePanelsAsync(cancellationToken);
-			await _screenUI.HideAsync(cancellationToken);
+			await ScreenUI.HideAsync(cancellationToken);
 		}
 
 		private async UniTask ShowDefaultPanels(CancellationToken cancellationToken = default)
 		{
-			if (_panels?.Length > 0 && _defaultPanels?.Length > 0)
+			if (Panels?.Length > 0 && DefaultPanels?.Length > 0)
 			{
 				await _panelTransition.WaitAsync(cancellationToken);
 
 				try
 				{
-					UniTask[] panelsToShow = new UniTask[_defaultPanels.Length];
-					for (int i = 0; i < _defaultPanels.Length; i++)
+					UniTask[] panelsToShow = new UniTask[DefaultPanels.Length];
+					for (int i = 0; i < DefaultPanels.Length; i++)
 					{
-						panelsToShow[i] = DoShowPanelAsync(_defaultPanels[i], cancellationToken);
+						panelsToShow[i] = DoShowPanelAsync(DefaultPanels[i], cancellationToken);
 					}
 
 					await UniTask.WhenAll(panelsToShow);
