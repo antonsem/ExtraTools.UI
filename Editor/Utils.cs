@@ -51,6 +51,13 @@ namespace ExtraTools.UI.Editor
 			panelsField?.SetValue(type, value);
 		}
 
+		public static TValue GetField<T, TValue>(T type, string fieldName)
+		{
+			FieldInfo field = typeof(T).GetField(fieldName,
+				BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+			return field != null ? (TValue)field.GetValue(type) : default;
+		}
+
 		public static bool TryAddType<T>(Component neighbour, out T component) where T : Component
 		{
 			string assemblyName = neighbour.GetType().Assembly.FullName.Split(',')[0];

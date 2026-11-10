@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opening and closing dialogs quickly with animated views could leave extra dialogs visible, or stop a dialog from showing again
 - A dialog shown with an empty `answers` array had no buttons and couldn't be closed by the player. It now gets the default OK button, like a null array
 - Asking a screen for a panel type it doesn't have did nothing silently. It now logs an error, like the manager does for screens, dialogs and widgets
+- "Set Screen" and "Set UI" replaced a screen's default panels with its first panel, and kept defaults that no longer belonged to the screen
 
 ## [2.0.2] - 2026-05-04
 

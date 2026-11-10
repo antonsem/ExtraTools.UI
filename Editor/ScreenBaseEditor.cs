@@ -1,3 +1,4 @@
+using System;
 using ExtraTools.UI.Panel;
 using ExtraTools.UI.Screen;
 using UnityEditor;
@@ -37,11 +38,17 @@ namespace ExtraTools.UI.Editor
 			PanelBase[] panels = screenBase.GetComponentsInChildren<PanelBase>();
 			Utils.AssignField(screenBase, "_panels", panels);
 
-			if (panels.Length > 0)
+			// Keep the configured defaults, minus panels that were deleted or no longer belong to this screen.
+			PanelBase[] defaultPanels = Utils.GetField<ScreenBase, PanelBase[]>(screenBase, "_defaultPanels")
+				?? Array.Empty<PanelBase>();
+			defaultPanels = Array.FindAll(defaultPanels, panel => panel && Array.IndexOf(panels, panel) >= 0);
+
+			if (defaultPanels.Length == 0 && panels.Length > 0)
 			{
-				PanelBase[] defaultPanels = { panels[0] };
-				Utils.AssignField(screenBase, "_defaultPanels", defaultPanels);
+				defaultPanels = new[] { panels[0] };
 			}
+
+			Utils.AssignField(screenBase, "_defaultPanels", defaultPanels);
 
 			foreach (PanelBase panel in panels)
 			{
