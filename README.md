@@ -74,6 +74,10 @@ Requires a text and an answer option to set up.
 Represents a notification or a short message. Can be clicked on and has expiration time.
 Widget notifications can be stacked but will be shown sequentially.
 
+A widget goes away by itself after its show time. `Show` completes once the widget is
+visible. To close it early, call `Hide`, which also drops that widget's queued entries and
+completes once the widget has hidden.
+
 ### Automatic Setup
 
 It is assumed that a `Screen` class lives next to its UI counterpart, and the UI

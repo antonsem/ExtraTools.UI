@@ -24,9 +24,16 @@ namespace ExtraTools.UI.Widget
 		}
 
 		[PublicAPI]
-		public virtual void Show(string text, float showTime = 1, Action callback = null)
+		public virtual UniTask Show(string text, float showTime = 1, Action callback = null,
+			CancellationToken cancellationToken = default)
 		{
-			UIManager.ShowWidget(new WidgetTask(this, text, showTime, callback));
+			return UIManager.ShowWidget(new WidgetTask(this, text, showTime, callback, cancellationToken));
+		}
+
+		[PublicAPI]
+		public virtual UniTask Hide(CancellationToken cancellationToken = default)
+		{
+			return UIManager.HideWidget(this, cancellationToken);
 		}
 
 		[PublicAPI]
@@ -34,24 +41,19 @@ namespace ExtraTools.UI.Widget
 			CancellationToken cancellationToken = default)
 		{
 			_task = task;
+			await _widgetUI.ShowAsync(task, cancellationToken);
+		}
 
-			// A stop can cancel the show animation, but the widget still has to hide afterward.
-			bool isCancelled = await _widgetUI.ShowAsync(task, cancellationToken).SuppressCancellationThrow();
-
-			if (!isCancelled)
-			{
-				await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: cancellationToken)
-					.SuppressCancellationThrow();
-			}
-
+		[PublicAPI]
+		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
+		{
+			// A widget can outlive its scene while it waits to expire.
 			if (!_widgetUI)
 			{
 				return;
 			}
 
-			// ReSharper disable once MethodSupportsCancellation
-			// The token is left out on purpose: after a stop it is already canceled and the hide must still finish.
-			await _widgetUI.HideAsync();
+			await _widgetUI.HideAsync(cancellationToken);
 		}
 
 		protected internal virtual void OnClick()

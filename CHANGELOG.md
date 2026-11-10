@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `[PublicAPI]` annotations on the members meant to be called or overridden by consuming projects
 - `DialogBase.Hide`, to close a dialog from code
+- `WidgetBase.Hide`, to stop a widget and drop its queued entries. It completes once the widget has hidden
+- `WidgetBase.HideAsync`, to override how a widget hides
 
 ### Changed
+- `WidgetBase.Show` now returns a `UniTask` that completes once the widget is visible, and takes a `CancellationToken` that stops the widget. Calls from sync code need `.Forget()`
+- `WidgetBase.ShowAsync` now only shows the widget. The manager waits for `showTime` and then calls `HideAsync`, so code placed after `base.ShowAsync` in an override should move to a `HideAsync` override
 - `DialogBase.Show` now returns a `UniTask` and takes a `CancellationToken`. Calls from sync code need `.Forget()`
 - `DialogBase.ShowAsync` and `HideAsync` now take a `CancellationToken`. Overrides need the new signature
 - Renamed `ScreenUIBase.Show` and `Hide` to `ShowAsync` and `HideAsync`. Overrides need the new names
@@ -22,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Panel, dialog and widget views now require a `Canvas`, matching screen views
 
 ### Fixed
+- A widget stopped while queued was still shown briefly when its turn came
 - A dialog re-shown with `hideOtherDialogs` while already open lost its buttons
 - Stopping a widget had no effect, and a widget outliving its scene threw a `MissingReferenceException`
 - Stopping a widget twice, or reading its `CancellationToken` after a stop, threw a `NullReferenceException`

@@ -281,10 +281,35 @@ namespace ExtraTools.UI.Base
 			_activeDialogs.Remove(dialog);
 		}
 
-		internal void ShowWidget(WidgetTask task)
+		internal UniTask ShowWidget(WidgetTask task)
 		{
 			_widgetQueue.Enqueue(task);
 			PlayWidgetQueue().Forget();
+			return task.Shown;
+		}
+
+		internal async UniTask HideWidget(WidgetBase widget, CancellationToken cancellationToken = default)
+		{
+			// A copy, because stopping a task can resume code that queues another widget.
+			foreach (WidgetTask task in _widgetQueue.ToArray())
+			{
+				if (task.Base == widget)
+				{
+					task.StopTask();
+				}
+			}
+
+			WidgetTask active = ActiveWidget;
+
+			if (active == null || active.Base != widget)
+			{
+				return;
+			}
+
+			active.StopTask();
+
+			// The token can only end this wait. The hide itself always finishes.
+			await active.Hidden.AttachExternalCancellation(cancellationToken);
 		}
 
 		[PublicAPI]
@@ -296,7 +321,11 @@ namespace ExtraTools.UI.Base
 		[PublicAPI]
 		protected void HideAllWidgets()
 		{
-			_widgetQueue.Clear();
+			while (_widgetQueue.Count > 0)
+			{
+				_widgetQueue.Dequeue().StopTask();
+			}
+
 			HideActiveWidget();
 		}
 
@@ -307,11 +336,36 @@ namespace ExtraTools.UI.Base
 				return;
 			}
 
-			ActiveWidget = _widgetQueue.Dequeue();
+			// Widgets stopped while queued have already released their callers and are never shown.
+			while (_widgetQueue.Count > 0 && _widgetQueue.Peek().IsStopped)
+			{
+				_widgetQueue.Dequeue();
+			}
+
+			if (_widgetQueue.Count == 0)
+			{
+				return;
+			}
+
+			WidgetTask task = _widgetQueue.Dequeue();
+			ActiveWidget = task;
+			task.MarkStarted();
 
 			try
 			{
-				await ActiveWidget.Base.ShowAsync(ActiveWidget, ActiveWidget.CancellationToken);
+				// A stop can cancel the show animation, but the widget still has to hide afterward.
+				bool isCancelled = await task.Base.ShowAsync(task, task.CancellationToken).SuppressCancellationThrow();
+				task.MarkShown();
+
+				if (!isCancelled)
+				{
+					await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: task.CancellationToken)
+						.SuppressCancellationThrow();
+				}
+
+				// ReSharper disable once MethodSupportsCancellation
+				// The token is left out on purpose: after a stop it is already canceled and the hide must still finish.
+				await task.Base.HideAsync();
 			}
 			catch (OperationCanceledException)
 			{
@@ -323,6 +377,7 @@ namespace ExtraTools.UI.Base
 			}
 
 			ActiveWidget = null;
+			task.MarkFinished();
 
 			if (_widgetQueue.Count > 0)
 			{
