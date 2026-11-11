@@ -4,6 +4,7 @@ using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Screen
 {
@@ -11,6 +12,8 @@ namespace ExtraTools.UI.Screen
 	public abstract class ScreenUIBase : MonoBehaviour
 	{
 		[SerializeField, FormerlySerializedAs("_canvas")] protected Canvas Canvas;
+
+		[SerializeField, PublicAPI] protected internal Selectable FirstSelected;
 
 		[PublicAPI] protected ScreenBase ScreenBase;
 

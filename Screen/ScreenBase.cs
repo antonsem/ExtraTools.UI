@@ -7,6 +7,7 @@ using ExtraTools.UI.Panel;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Screen
 {
@@ -25,6 +26,8 @@ namespace ExtraTools.UI.Screen
 		private Dictionary<Type, PanelBase> _panelsDictionary;
 		private readonly SemaphoreSlim _panelTransition = new(1, 1);
 		private bool _isInteractable;
+
+		internal Selectable FirstSelected => ScreenUI.FirstSelected;
 
 		private const string NoPanelError =
 			"<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
@@ -254,6 +257,7 @@ namespace ExtraTools.UI.Screen
 
 			panel.SetInteractable(_isInteractable);
 			await panel.ShowAsync(cancellationToken);
+			UIManager.SelectIfLost(panel.FirstSelected);
 		}
 
 		private async UniTask DoHidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)

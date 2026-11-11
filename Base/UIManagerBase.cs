@@ -188,6 +188,7 @@ namespace ExtraTools.UI.Base
 				ActiveScreen = screen;
 				UpdateInteractable();
 				await screen.ShowAsync(cancellationToken);
+				SelectIfLost(screen.FirstSelected);
 			}
 			finally
 			{
@@ -352,6 +353,18 @@ namespace ExtraTools.UI.Base
 				// The previous selection was inside a dialog that has closed since, so the top dialog takes focus.
 				Select(_activeDialogs[^1].FirstAnswer);
 			}
+		}
+
+		// Focus moves only when the current selection can't be used (nothing selected, or it is hidden or covered), so
+		// a view showing beside the one in use doesn't take focus from it, and an open dialog keeps it.
+		internal void SelectIfLost(Selectable target)
+		{
+			if (_activeDialogs.Count > 0 || !target || IsSelectable(GetSelection()) || !IsSelectable(target.gameObject))
+			{
+				return;
+			}
+
+			Select(target);
 		}
 
 		private static GameObject GetSelection()

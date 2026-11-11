@@ -4,6 +4,7 @@ using ExtraTools.UI.Screen;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Panel
 {
@@ -12,6 +13,8 @@ namespace ExtraTools.UI.Panel
 		[SerializeField, FormerlySerializedAs("_panelUI")] protected PanelUIBase PanelUI;
 
 		[PublicAPI] protected ScreenBase Screen;
+
+		internal Selectable FirstSelected => PanelUI.FirstSelected;
 
 		[PublicAPI]
 		protected internal virtual void Initialize(ScreenBase screenBase)
