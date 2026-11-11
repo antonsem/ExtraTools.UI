@@ -80,6 +80,41 @@ A widget goes away by itself after its show time. `Show` completes once the widg
 visible. To close it early, call `Hide`, which also drops that widget's queued entries and
 completes once the widget has hidden.
 
+### Controller support
+
+Every view gets a `CanvasGroup`, added at runtime when missing. The manager uses it so that
+only the top dialog, or the active screen with its active panels and the active widget, can
+be navigated to. Buttons on covered views show their Disabled state.
+
+Focus is handled for you:
+
+- A dialog selects its default answer when it opens. Mark one with
+  `new DialogAnswer("No", isDefault: true)`, otherwise the first answer is used.
+  Closing the dialog returns focus to what was selected before.
+- Assign `FirstSelected` on a screen or panel view to give it focus when it shows. It
+  is only used while nothing usable is selected, so a panel opening next to a focused
+  button does not take focus away from it.
+
+The package reads no input. To support a back or cancel button, call
+`UIManager.Cancel()` from your own input code, for example from the Cancel action of
+`InputSystemUIInputModule`. It goes to the top dialog, which clicks its default answer,
+or ignores Cancel when no answer is marked default. With no dialog open it goes to the
+active screen. Screens ignore Cancel unless you override `OnCancel`:
+
+```csharp
+protected override bool OnCancel()
+{
+	UIManager.GetScreen<MainMenuScreen>().Show().Forget();
+	return true;
+}
+```
+
+`Cancel()` returns `false` when nothing used it, so you can do something else then,
+like opening a pause menu.
+
+For the best results with a mouse, untick "Deselect On Background Click" on the input
+module, so clicking empty space does not leave nothing selected.
+
 ### Automatic Setup
 
 It is assumed that a `Screen` class lives next to its UI counterpart, and the UI

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-11-11
+
+### Added
+- Controller and keyboard support for uGUI navigation. See "Controller support" in the README
+- A dialog's default answer is selected when it opens. Closing it returns focus to what was selected before, or to the active screen
+- `FirstSelected` on screen and panel views, selected when the view shows while nothing usable is selected
+- `isDefault` parameter on `DialogAnswer`, to pick the answer that gets focus and is clicked by Cancel. Without one the first answer gets focus and Cancel is ignored
+- `UIManagerBase.Cancel`, which passes a back or cancel press to the top dialog, or to the active screen when no dialog is open. It returns whether anything used it
+- `OnCancel` on `DialogBase` and `ScreenBase`, to change what Cancel does. Screens ignore it by default
+
+### Changed
+- Only the top dialog can be used while dialogs are open, and otherwise only the active screen, its active panels and the active widget. Every view gets a `CanvasGroup` for this, added at runtime when missing, and the manager controls its `interactable` flag. Buttons on covered views show their Disabled state
+- The default OK answer of a dialog shown without answers is marked as default, so Cancel closes it
+
 ## [3.0.0] - 2026-11-10
 
 ### Added
