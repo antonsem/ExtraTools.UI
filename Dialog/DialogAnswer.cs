@@ -7,11 +7,13 @@ namespace ExtraTools.UI.Dialog
 	{
 		[PublicAPI] public readonly string Text;
 		[PublicAPI] public readonly Action Callback;
+		[PublicAPI] public readonly bool IsDefault;
 
-		public DialogAnswer(string text, Action callback = null)
+		public DialogAnswer(string text, Action callback = null, bool isDefault = false)
 		{
 			Text = text;
 			Callback = callback;
+			IsDefault = isDefault;
 		}
 	}
 }

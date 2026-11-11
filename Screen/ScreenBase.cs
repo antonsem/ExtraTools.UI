@@ -7,6 +7,7 @@ using ExtraTools.UI.Panel;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Screen
 {
@@ -24,6 +25,30 @@ namespace ExtraTools.UI.Screen
 
 		private Dictionary<Type, PanelBase> _panelsDictionary;
 		private readonly SemaphoreSlim _panelTransition = new(1, 1);
+		private bool _isInteractable;
+
+		internal Selectable FirstSelected => ScreenUI.FirstSelected;
+
+		internal Selectable FocusTarget
+		{
+			get
+			{
+				if (FirstSelected)
+				{
+					return FirstSelected;
+				}
+
+				foreach (PanelBase panel in _activePanels)
+				{
+					if (panel.FirstSelected)
+					{
+						return panel.FirstSelected;
+					}
+				}
+
+				return null;
+			}
+		}
 
 		private const string NoPanelError =
 			"<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
@@ -42,6 +67,17 @@ namespace ExtraTools.UI.Screen
 			}
 
 			ShowDefaultPanels().Forget();
+		}
+
+		internal void SetInteractable(bool interactable)
+		{
+			_isInteractable = interactable;
+			ScreenUI.SetInteractable(interactable);
+
+			foreach (PanelBase panel in Panels)
+			{
+				panel.SetInteractable(interactable && _activePanels.Contains(panel));
+			}
 		}
 
 		[PublicAPI]
@@ -77,6 +113,12 @@ namespace ExtraTools.UI.Screen
 		public async UniTask Hide(CancellationToken cancellationToken = default)
 		{
 			await UIManager.HideScreen(this, cancellationToken);
+		}
+
+		[PublicAPI]
+		protected internal virtual bool OnCancel()
+		{
+			return false;
 		}
 
 		[PublicAPI]
@@ -240,11 +282,14 @@ namespace ExtraTools.UI.Screen
 				_activePanels.Add(panel);
 			}
 
+			panel.SetInteractable(_isInteractable);
 			await panel.ShowAsync(cancellationToken);
+			UIManager.SelectIfLost(panel.FirstSelected);
 		}
 
 		private async UniTask DoHidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
+			panel.SetInteractable(false);
 			await panel.HideAsync(cancellationToken);
 			if (_activePanels.Contains(panel))
 			{

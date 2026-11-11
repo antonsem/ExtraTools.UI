@@ -4,6 +4,7 @@ using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Dialog
 {
@@ -29,9 +30,21 @@ namespace ExtraTools.UI.Dialog
 
 		#endregion
 
+		internal Selectable DefaultAnswer => DialogUI.DefaultAnswer;
+
 		internal void Initialize(UIManagerBase uiManager)
 		{
 			UIManager = uiManager;
+		}
+
+		internal bool Contains(GameObject target)
+		{
+			return DialogUI.Contains(target);
+		}
+
+		internal void SetInteractable(bool interactable)
+		{
+			DialogUI.SetInteractable(interactable);
 		}
 
 		[PublicAPI]
@@ -58,6 +71,12 @@ namespace ExtraTools.UI.Dialog
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			await DialogUI.HideAsync(cancellationToken);
+		}
+
+		[PublicAPI]
+		protected internal virtual bool OnCancel()
+		{
+			return DialogUI.Cancel();
 		}
 
 		[PublicAPI]

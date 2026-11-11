@@ -7,12 +7,15 @@ using ExtraTools.UI.Screen;
 using ExtraTools.UI.Widget;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Base
 {
 	public abstract class UIManagerBase : MonoBehaviour
 	{
 		private readonly List<DialogBase> _activeDialogs = new();
+		private readonly Dictionary<DialogBase, GameObject> _selectionsBeforeDialogs = new();
 		private readonly SemaphoreSlim _dialogTransition = new(1, 1);
 		private readonly SemaphoreSlim _screenTransition = new(1, 1);
 		private readonly Queue<WidgetTask> _widgetQueue = new();
@@ -56,6 +59,17 @@ namespace ExtraTools.UI.Base
 		public bool IsDialogActive(DialogBase dialog)
 		{
 			return _activeDialogs.Contains(dialog);
+		}
+
+		[PublicAPI]
+		public bool Cancel()
+		{
+			if (_activeDialogs.Count > 0)
+			{
+				return _activeDialogs[^1].OnCancel();
+			}
+
+			return ActiveScreen && ActiveScreen.OnCancel();
 		}
 
 		[PublicAPI]
@@ -157,6 +171,9 @@ namespace ExtraTools.UI.Base
 			{
 				screen.Initialize(this);
 			}
+
+			// Views that start visible in the scene are not shown yet as far as the manager is concerned.
+			UpdateInteractable();
 		}
 
 		internal async UniTask ShowScreen(ScreenBase screen, CancellationToken cancellationToken = default)
@@ -174,12 +191,15 @@ namespace ExtraTools.UI.Base
 
 				if (ActiveScreen)
 				{
+					ActiveScreen.SetInteractable(false);
 					await ActiveScreen.HideAsync(cancellationToken);
 				}
 
 				// Set before the await so that a canceled show can still be hidden by the next screen.
 				ActiveScreen = screen;
+				UpdateInteractable();
 				await screen.ShowAsync(cancellationToken);
+				SelectIfLost(screen.FirstSelected);
 			}
 			finally
 			{
@@ -193,6 +213,7 @@ namespace ExtraTools.UI.Base
 
 			try
 			{
+				screen.SetInteractable(false);
 				await screen.HideAsync(cancellationToken);
 
 				if (screen == ActiveScreen)
@@ -215,6 +236,12 @@ namespace ExtraTools.UI.Base
 
 			try
 			{
+				// When the open dialogs are replaced, focus returns to where it was before the first of them, since
+				// the current selection is inside a dialog that is about to close.
+				GameObject previousSelection = hideRest && _activeDialogs.Count > 0
+					? _selectionsBeforeDialogs.GetValueOrDefault(_activeDialogs[0])
+					: GetSelection();
+
 				if (hideRest)
 				{
 					await HideAllDialogs(cancellationToken);
@@ -226,12 +253,24 @@ namespace ExtraTools.UI.Base
 
 				if (_activeDialogs.Contains(dialog))
 				{
+					// It moved to the front, so it is the top dialog now.
+					_activeDialogs.Remove(dialog);
+					_activeDialogs.Add(dialog);
+					UpdateInteractable();
+
+					// The answers were rebuilt, so the old selection may now be a hidden button.
+					Select(dialog.DefaultAnswer);
 					return;
 				}
 
 				// Added before the await so that a failed show can still be hidden later.
 				_activeDialogs.Add(dialog);
+				_selectionsBeforeDialogs[dialog] = previousSelection;
+				UpdateInteractable();
 				await dialog.ShowAsync(cancellationToken);
+
+				// Without a selection a controller has nothing to navigate from.
+				Select(dialog.DefaultAnswer);
 			}
 			finally
 			{
@@ -251,7 +290,18 @@ namespace ExtraTools.UI.Base
 					return;
 				}
 
+				GameObject previousSelection = _selectionsBeforeDialogs.GetValueOrDefault(dialog);
+				GameObject selection = GetSelection();
+
+				// A dialog closed underneath another one must not steal focus from the one on top.
+				bool hadFocus = !selection || dialog.Contains(selection);
+
 				await DoHideDialog(dialog, cancellationToken);
+
+				if (hadFocus)
+				{
+					RestoreSelection(previousSelection);
+				}
 			}
 			finally
 			{
@@ -274,8 +324,86 @@ namespace ExtraTools.UI.Base
 
 		private async UniTask DoHideDialog(DialogBase dialog, CancellationToken cancellationToken)
 		{
+			dialog.SetInteractable(false);
 			await dialog.HideAsync(cancellationToken);
 			_activeDialogs.Remove(dialog);
+			_selectionsBeforeDialogs.Remove(dialog);
+			UpdateInteractable();
+		}
+
+		// Only what the player can see and is meant to use can be navigated to: the top dialog, or the active screen
+		// and widget while no dialog is open.
+		private void UpdateInteractable()
+		{
+			DialogBase topDialog = _activeDialogs.Count > 0 ? _activeDialogs[^1] : null;
+
+			foreach (ScreenBase screen in _screens.Values)
+			{
+				screen.SetInteractable(!topDialog && screen == ActiveScreen);
+			}
+
+			foreach (DialogBase dialog in _dialogs.Values)
+			{
+				dialog.SetInteractable(dialog == topDialog);
+			}
+
+			foreach (WidgetBase widget in _widgets.Values)
+			{
+				widget.SetInteractable(!topDialog && ActiveWidget?.Base == widget);
+			}
+		}
+
+		private void RestoreSelection(GameObject previousSelection)
+		{
+			if (IsSelectable(previousSelection))
+			{
+				Select(previousSelection);
+			}
+			else if (_activeDialogs.Count > 0)
+			{
+				// The previous selection was inside a dialog that has closed since, so the top dialog takes focus.
+				Select(_activeDialogs[^1].DefaultAnswer);
+			}
+			else if (ActiveScreen)
+			{
+				Select(ActiveScreen.FocusTarget);
+			}
+		}
+
+		// Focus moves only when the current selection can't be used (nothing selected, or it is hidden or covered), so
+		// a view showing beside the one in use doesn't take focus from it, and an open dialog keeps it.
+		internal void SelectIfLost(Selectable target)
+		{
+			if (_activeDialogs.Count > 0 || !target || IsSelectable(GetSelection()) || !IsSelectable(target.gameObject))
+			{
+				return;
+			}
+
+			Select(target);
+		}
+
+		private static GameObject GetSelection()
+		{
+			return EventSystem.current ? EventSystem.current.currentSelectedGameObject : null;
+		}
+
+		private static void Select(Component target)
+		{
+			Select(target ? target.gameObject : null);
+		}
+
+		private static void Select(GameObject target)
+		{
+			if (EventSystem.current)
+			{
+				EventSystem.current.SetSelectedGameObject(target);
+			}
+		}
+
+		private static bool IsSelectable(GameObject target)
+		{
+			return target && target.activeInHierarchy && target.TryGetComponent(out Selectable selectable) &&
+					selectable.IsInteractable();
 		}
 
 		internal UniTask ShowWidget(WidgetTask task)
@@ -346,6 +474,7 @@ namespace ExtraTools.UI.Base
 
 			WidgetTask task = _widgetQueue.Dequeue();
 			ActiveWidget = task;
+			task.Base.SetInteractable(_activeDialogs.Count == 0);
 			task.MarkStarted();
 
 			try
@@ -359,6 +488,8 @@ namespace ExtraTools.UI.Base
 					await UniTask.Delay((int)(1000 * task.ShowTime), true, cancellationToken: task.CancellationToken)
 						.SuppressCancellationThrow();
 				}
+
+				task.Base.SetInteractable(false);
 
 				// ReSharper disable once MethodSupportsCancellation
 				// The token is left out on purpose: after a stop it is already canceled and the hide must still finish.

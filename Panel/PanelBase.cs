@@ -4,6 +4,7 @@ using ExtraTools.UI.Screen;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace ExtraTools.UI.Panel
 {
@@ -13,11 +14,18 @@ namespace ExtraTools.UI.Panel
 
 		[PublicAPI] protected ScreenBase Screen;
 
+		internal Selectable FirstSelected => PanelUI.FirstSelected;
+
 		[PublicAPI]
 		protected internal virtual void Initialize(ScreenBase screenBase)
 		{
 			Screen = screenBase;
 			PanelUI.Initialize(this);
+		}
+
+		internal void SetInteractable(bool interactable)
+		{
+			PanelUI.SetInteractable(interactable);
 		}
 
 		[PublicAPI]
