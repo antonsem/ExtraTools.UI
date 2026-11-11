@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -23,10 +24,25 @@ namespace ExtraTools.UI.Dialog
 
 		private readonly List<(Button, TMP_Text)> _buttons = new(2);
 
+		private CanvasGroup _canvasGroup;
+
+		// Only valid after Setup, which always activates at least one button.
+		internal Selectable FirstAnswer => _buttons.Count > 0 ? _buttons[0].Item1 : null;
+
 		[PublicAPI]
 		protected virtual void OnDisable()
 		{
 			ClearButtons();
+		}
+
+		internal bool Contains(GameObject target)
+		{
+			return target.transform.IsChildOf(transform);
+		}
+
+		internal void SetInteractable(bool interactable)
+		{
+			Interactability.Set(this, ref _canvasGroup, interactable);
 		}
 
 		internal void Setup(string text, params DialogAnswer[] answers)

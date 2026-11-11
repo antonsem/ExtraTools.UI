@@ -23,6 +23,11 @@ namespace ExtraTools.UI.Widget
 			WidgetUI.Initialize(this);
 		}
 
+		internal void SetInteractable(bool interactable)
+		{
+			WidgetUI.SetInteractable(interactable);
+		}
+
 		[PublicAPI]
 		public virtual UniTask Show(string text, float showTime = 1, Action callback = null,
 			CancellationToken cancellationToken = default)

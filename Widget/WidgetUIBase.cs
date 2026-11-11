@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
+using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -16,6 +17,13 @@ namespace ExtraTools.UI.Widget
 		[SerializeField] private Button _button;
 
 		[PublicAPI] protected WidgetBase Widget;
+
+		private CanvasGroup _canvasGroup;
+
+		internal void SetInteractable(bool interactable)
+		{
+			Interactability.Set(this, ref _canvasGroup, interactable);
+		}
 
 		[PublicAPI]
 		protected virtual void OnEnable()

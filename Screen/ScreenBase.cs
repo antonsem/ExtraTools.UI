@@ -24,6 +24,7 @@ namespace ExtraTools.UI.Screen
 
 		private Dictionary<Type, PanelBase> _panelsDictionary;
 		private readonly SemaphoreSlim _panelTransition = new(1, 1);
+		private bool _isInteractable;
 
 		private const string NoPanelError =
 			"<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
@@ -42,6 +43,17 @@ namespace ExtraTools.UI.Screen
 			}
 
 			ShowDefaultPanels().Forget();
+		}
+
+		internal void SetInteractable(bool interactable)
+		{
+			_isInteractable = interactable;
+			ScreenUI.SetInteractable(interactable);
+
+			foreach (PanelBase panel in Panels)
+			{
+				panel.SetInteractable(interactable && _activePanels.Contains(panel));
+			}
 		}
 
 		[PublicAPI]
@@ -240,11 +252,13 @@ namespace ExtraTools.UI.Screen
 				_activePanels.Add(panel);
 			}
 
+			panel.SetInteractable(_isInteractable);
 			await panel.ShowAsync(cancellationToken);
 		}
 
 		private async UniTask DoHidePanelAsync(PanelBase panel, CancellationToken cancellationToken = default)
 		{
+			panel.SetInteractable(false);
 			await panel.HideAsync(cancellationToken);
 			if (_activePanels.Contains(panel))
 			{

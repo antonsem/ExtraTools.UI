@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
+using ExtraTools.UI.Base;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,6 +13,13 @@ namespace ExtraTools.UI.Screen
 		[SerializeField, FormerlySerializedAs("_canvas")] protected Canvas Canvas;
 
 		[PublicAPI] protected ScreenBase ScreenBase;
+
+		private CanvasGroup _canvasGroup;
+
+		internal void SetInteractable(bool interactable)
+		{
+			Interactability.Set(this, ref _canvasGroup, interactable);
+		}
 
 		[PublicAPI]
 		protected internal virtual void Initialize(ScreenBase screenBase)

@@ -20,6 +20,11 @@ namespace ExtraTools.UI.Panel
 			PanelUI.Initialize(this);
 		}
 
+		internal void SetInteractable(bool interactable)
+		{
+			PanelUI.SetInteractable(interactable);
+		}
+
 		[PublicAPI]
 		protected internal virtual async UniTask ShowAsync(CancellationToken cancellationToken = default)
 		{
