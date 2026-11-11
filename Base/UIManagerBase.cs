@@ -62,6 +62,17 @@ namespace ExtraTools.UI.Base
 		}
 
 		[PublicAPI]
+		public bool Cancel()
+		{
+			if (_activeDialogs.Count > 0)
+			{
+				return _activeDialogs[^1].OnCancel();
+			}
+
+			return ActiveScreen && ActiveScreen.OnCancel();
+		}
+
+		[PublicAPI]
 		public T GetScreen<T>() where T : ScreenBase
 		{
 			if (!_isInitialized)
@@ -248,7 +259,7 @@ namespace ExtraTools.UI.Base
 					UpdateInteractable();
 
 					// The answers were rebuilt, so the old selection may now be a hidden button.
-					Select(dialog.FirstAnswer);
+					Select(dialog.DefaultAnswer);
 					return;
 				}
 
@@ -259,7 +270,7 @@ namespace ExtraTools.UI.Base
 				await dialog.ShowAsync(cancellationToken);
 
 				// Without a selection a controller has nothing to navigate from.
-				Select(dialog.FirstAnswer);
+				Select(dialog.DefaultAnswer);
 			}
 			finally
 			{
@@ -351,7 +362,11 @@ namespace ExtraTools.UI.Base
 			else if (_activeDialogs.Count > 0)
 			{
 				// The previous selection was inside a dialog that has closed since, so the top dialog takes focus.
-				Select(_activeDialogs[^1].FirstAnswer);
+				Select(_activeDialogs[^1].DefaultAnswer);
+			}
+			else if (ActiveScreen)
+			{
+				Select(ActiveScreen.FocusTarget);
 			}
 		}
 

@@ -30,7 +30,7 @@ namespace ExtraTools.UI.Dialog
 
 		#endregion
 
-		internal Selectable FirstAnswer => DialogUI.FirstAnswer;
+		internal Selectable DefaultAnswer => DialogUI.DefaultAnswer;
 
 		internal void Initialize(UIManagerBase uiManager)
 		{
@@ -71,6 +71,12 @@ namespace ExtraTools.UI.Dialog
 		protected internal virtual async UniTask HideAsync(CancellationToken cancellationToken = default)
 		{
 			await DialogUI.HideAsync(cancellationToken);
+		}
+
+		[PublicAPI]
+		protected internal virtual bool OnCancel()
+		{
+			return DialogUI.Cancel();
 		}
 
 		[PublicAPI]

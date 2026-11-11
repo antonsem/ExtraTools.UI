@@ -20,14 +20,16 @@ namespace ExtraTools.UI.Dialog
 		[SerializeField] private TMP_Text _message;
 		[SerializeField] private Transform _buttonsParent;
 
-		private readonly List<DialogAnswer> _okAnswer = new() { new DialogAnswer("OK") };
+		private readonly List<DialogAnswer> _okAnswer = new() { new DialogAnswer("OK", isDefault: true) };
 
 		private readonly List<(Button, TMP_Text)> _buttons = new(2);
 
 		private CanvasGroup _canvasGroup;
 
+		private int _defaultIndex = -1;
+
 		// Only valid after Setup, which always activates at least one button.
-		internal Selectable FirstAnswer => _buttons.Count > 0 ? _buttons[0].Item1 : null;
+		internal Selectable DefaultAnswer => _buttons.Count > 0 ? _buttons[Mathf.Max(_defaultIndex, 0)].Item1 : null;
 
 		[PublicAPI]
 		protected virtual void OnDisable()
@@ -43,6 +45,17 @@ namespace ExtraTools.UI.Dialog
 		internal void SetInteractable(bool interactable)
 		{
 			Interactability.Set(this, ref _canvasGroup, interactable);
+		}
+
+		internal bool Cancel()
+		{
+			if (_defaultIndex < 0)
+			{
+				return false;
+			}
+
+			_buttons[_defaultIndex].Item1.onClick.Invoke();
+			return true;
 		}
 
 		internal void Setup(string text, params DialogAnswer[] answers)
@@ -77,6 +90,11 @@ namespace ExtraTools.UI.Dialog
 
 				_buttons[i].Item2.text = answers[i].Text;
 				_buttons[i].Item1.gameObject.SetActive(true);
+
+				if (answers[i].IsDefault)
+				{
+					_defaultIndex = i;
+				}
 			}
 		}
 
@@ -98,6 +116,8 @@ namespace ExtraTools.UI.Dialog
 
 		private void ClearButtons()
 		{
+			_defaultIndex = -1;
+
 			foreach ((Button button, TMP_Text _) in _buttons)
 			{
 				button.onClick.RemoveAllListeners();

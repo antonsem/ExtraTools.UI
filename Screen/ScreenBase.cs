@@ -29,6 +29,27 @@ namespace ExtraTools.UI.Screen
 
 		internal Selectable FirstSelected => ScreenUI.FirstSelected;
 
+		internal Selectable FocusTarget
+		{
+			get
+			{
+				if (FirstSelected)
+				{
+					return FirstSelected;
+				}
+
+				foreach (PanelBase panel in _activePanels)
+				{
+					if (panel.FirstSelected)
+					{
+						return panel.FirstSelected;
+					}
+				}
+
+				return null;
+			}
+		}
+
 		private const string NoPanelError =
 			"<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
 
@@ -92,6 +113,12 @@ namespace ExtraTools.UI.Screen
 		public async UniTask Hide(CancellationToken cancellationToken = default)
 		{
 			await UIManager.HideScreen(this, cancellationToken);
+		}
+
+		[PublicAPI]
+		protected internal virtual bool OnCancel()
+		{
+			return false;
 		}
 
 		[PublicAPI]
