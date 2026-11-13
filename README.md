@@ -115,6 +115,13 @@ like opening a pause menu.
 For the best results with a mouse, untick "Deselect On Background Click" on the input
 module, so clicking empty space does not leave nothing selected.
 
+A right or middle click on another button, or any click on a disabled one, still clears
+the selection. Tick "Keep Selection" on the manager to select the last element again in
+that case. It only restores elements under that manager that can still be used, so it
+does nothing in scenes without focusable UI and works with several managers at once. It
+also undoes `EventSystem.current.SetSelectedGameObject(null)` from your own code while
+that element is still usable, so leave it off for managers where that is intended.
+
 ### Automatic Setup
 
 It is assumed that a `Screen` class lives next to its UI counterpart, and the UI

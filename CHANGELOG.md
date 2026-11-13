@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-11-13
+
+### Added
+- "Keep Selection" option on `UIManagerBase`, off by default. It selects the manager's last selected element again when a right or middle click, or a click on a disabled button, clears the selection
+- `UIManagerBase.LateUpdate` is `protected virtual`. Subclasses that define their own `LateUpdate` need to override it and call `base`
+
 ## [3.1.0] - 2026-11-11
 
 ### Added
