@@ -14,6 +14,10 @@ namespace ExtraTools.UI.Base
 {
 	public abstract class UIManagerBase : MonoBehaviour
 	{
+		[Tooltip("Selects this manager's last selected element again when the selection is cleared while that " +
+				"element can still be used, for example by a right or middle click on another button.")]
+		[SerializeField] private bool _keepSelection;
+
 		private readonly List<DialogBase> _activeDialogs = new();
 		private readonly Dictionary<DialogBase, GameObject> _selectionsBeforeDialogs = new();
 		private readonly SemaphoreSlim _dialogTransition = new(1, 1);
@@ -22,6 +26,7 @@ namespace ExtraTools.UI.Base
 		private Dictionary<Type, DialogBase> _dialogs;
 
 		private bool _isInitialized;
+		private GameObject _lastSelection;
 		private Dictionary<Type, ScreenBase> _screens;
 		private Dictionary<Type, WidgetBase> _widgets;
 
@@ -46,6 +51,15 @@ namespace ExtraTools.UI.Base
 			if (!_isInitialized)
 			{
 				Initialize();
+			}
+		}
+
+		[PublicAPI]
+		protected virtual void LateUpdate()
+		{
+			if (_keepSelection)
+			{
+				KeepSelection();
 			}
 		}
 
@@ -380,6 +394,27 @@ namespace ExtraTools.UI.Base
 			}
 
 			Select(target);
+		}
+
+		// Only selections inside this manager are remembered, so several managers don't take focus from each other.
+		private void KeepSelection()
+		{
+			GameObject selection = GetSelection();
+
+			if (selection)
+			{
+				_lastSelection = selection.transform.IsChildOf(transform) ? selection : null;
+				return;
+			}
+
+			if (IsSelectable(_lastSelection))
+			{
+				Select(_lastSelection);
+			}
+			else
+			{
+				_lastSelection = null;
+			}
 		}
 
 		private static GameObject GetSelection()
