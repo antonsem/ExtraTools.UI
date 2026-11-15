@@ -50,8 +50,9 @@ namespace ExtraTools.UI.Screen
 			}
 		}
 
-		private const string NoPanelError =
-			"<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
+		private const string NoPanelError = "<b>{0}</b> <color=red>does not have</color> a panel of type <b>{1}</b>!";
+		private const string PanelIsNullError = "<b>{0}</b> <color=red>has a null panel of type</color> <b>{1}</b>!";
+		private const string NotATypeError = "<b>{0}</b> <color=red>is not a {1}</color>!";
 
 		[PublicAPI]
 		protected internal virtual void Initialize(UIManagerBase uiManager)
@@ -215,13 +216,43 @@ namespace ExtraTools.UI.Screen
 		[PublicAPI]
 		protected T GetPanel<T>() where T : PanelBase
 		{
-			if (_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
+			if (!_panelsDictionary.TryGetValue(typeof(T), out PanelBase panel))
 			{
-				return panel as T;
+				Debug.LogError(string.Format(NoPanelError, name, typeof(T)), this);
+				return null;
 			}
 
-			Debug.LogError(string.Format(NoPanelError, name, typeof(T)), this);
-			return null;
+			if (!panel)
+			{
+				Debug.LogError(string.Format(PanelIsNullError, name, typeof(T)), this);
+				return null;
+			}
+
+			return panel as T;
+		}
+
+		[PublicAPI]
+		protected PanelBase GetPanel(Type panelType)
+		{
+			if (panelType == null || !panelType.IsSubclassOf(typeof(PanelBase)))
+			{
+				Debug.LogError(string.Format(NotATypeError, panelType?.FullName ?? "null", typeof(PanelBase)), this);
+				return null;
+			}
+
+			if (!_panelsDictionary.TryGetValue(panelType, out PanelBase panel))
+			{
+				Debug.LogError(string.Format(NoPanelError, name, panelType), this);
+				return null;
+			}
+
+			if (!panel)
+			{
+				Debug.LogError(string.Format(PanelIsNullError, name, panelType), this);
+				return null;
+			}
+
+			return panel;
 		}
 
 		[PublicAPI]

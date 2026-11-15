@@ -30,14 +30,13 @@ namespace ExtraTools.UI.Base
 		private Dictionary<Type, ScreenBase> _screens;
 		private Dictionary<Type, WidgetBase> _widgets;
 
-		private const string NoScreenError =
-			"<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
-
-		private const string NoDialogError =
-			"<b>{0}</b> <color=red>does not have</color> a dialog of type <b>{1}</b>!";
-
-		private const string NoWidgetError =
-			"<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
+		private const string NoScreenError = "<b>{0}</b> <color=red>does not have</color> a screen of type <b>{1}</b>!";
+		private const string ScreenIsNullError = "<b>{0}</b> <color=red>has a null screen of type</color> <b>{1}</b>!";
+		private const string NoDialogError = "<b>{0}</b> <color=red>does not have</color> a dialog of type <b>{1}</b>!";
+		private const string DialogIsNullError = "<b>{0}</b> <color=red>has a null dialog of type</color> <b>{1}</b>!";
+		private const string NoWidgetError = "<b>{0}</b> <color=red>does not have</color> a widget of type <b>{1}</b>!";
+		private const string WidgetIsNullError = "<b>{0}</b> <color=red>has a null widget of type</color> <b>{1}</b>!";
+		private const string NotATypeError = "<b>{0}</b> <color=red>is not a {1}</color>!";
 
 		[PublicAPI] public ScreenBase ActiveScreen { get; private set; }
 
@@ -94,15 +93,48 @@ namespace ExtraTools.UI.Base
 				Initialize();
 			}
 
-			_screens.TryGetValue(typeof(T), out ScreenBase val);
-
-			if (!val)
+			if (!_screens.TryGetValue(typeof(T), out ScreenBase val))
 			{
 				Debug.LogError(string.Format(NoScreenError, name, typeof(T)), this);
 				return null;
 			}
 
+			if (!val)
+			{
+				Debug.LogError(string.Format(ScreenIsNullError, name, typeof(T)), this);
+				return null;
+			}
+
 			return val.GetComponent<T>();
+		}
+
+		[PublicAPI]
+		public ScreenBase GetScreen(Type screenType)
+		{
+			if (!_isInitialized)
+			{
+				Initialize();
+			}
+
+			if (screenType == null || !screenType.IsSubclassOf(typeof(ScreenBase)))
+			{
+				Debug.LogError(string.Format(NotATypeError, screenType?.FullName ?? "null", typeof(ScreenBase)), this);
+				return null;
+			}
+
+			if (!_screens.TryGetValue(screenType, out ScreenBase val))
+			{
+				Debug.LogError(string.Format(NoScreenError, name, screenType), this);
+				return null;
+			}
+
+			if (!val)
+			{
+				Debug.LogError(string.Format(ScreenIsNullError, name, screenType), this);
+				return null;
+			}
+
+			return val;
 		}
 
 		[PublicAPI]
@@ -113,15 +145,48 @@ namespace ExtraTools.UI.Base
 				Initialize();
 			}
 
-			_dialogs.TryGetValue(typeof(T), out DialogBase val);
-
-			if (!val)
+			if (!_dialogs.TryGetValue(typeof(T), out DialogBase val))
 			{
 				Debug.LogError(string.Format(NoDialogError, name, typeof(T)), this);
 				return null;
 			}
 
+			if (!val)
+			{
+				Debug.LogError(string.Format(DialogIsNullError, name, typeof(T)), this);
+				return null;
+			}
+
 			return val.GetComponent<T>();
+		}
+
+		[PublicAPI]
+		public DialogBase GetDialog(Type dialogType)
+		{
+			if (!_isInitialized)
+			{
+				Initialize();
+			}
+
+			if (dialogType == null || !dialogType.IsSubclassOf(typeof(DialogBase)))
+			{
+				Debug.LogError(string.Format(NotATypeError, dialogType?.FullName ?? "null", typeof(DialogBase)), this);
+				return null;
+			}
+
+			if (!_dialogs.TryGetValue(dialogType, out DialogBase val))
+			{
+				Debug.LogError(string.Format(NoDialogError, name, dialogType), this);
+				return null;
+			}
+
+			if (!val)
+			{
+				Debug.LogError(string.Format(DialogIsNullError, name, dialogType), this);
+				return null;
+			}
+
+			return val;
 		}
 
 		[PublicAPI]
@@ -132,15 +197,48 @@ namespace ExtraTools.UI.Base
 				Initialize();
 			}
 
-			_widgets.TryGetValue(typeof(T), out WidgetBase val);
-
-			if (!val)
+			if (!_widgets.TryGetValue(typeof(T), out WidgetBase val))
 			{
 				Debug.LogError(string.Format(NoWidgetError, name, typeof(T)), this);
 				return null;
 			}
 
+			if (!val)
+			{
+				Debug.LogError(string.Format(WidgetIsNullError, name, typeof(T)), this);
+				return null;
+			}
+
 			return val.GetComponent<T>();
+		}
+
+		[PublicAPI]
+		public WidgetBase GetWidget(Type widgetType)
+		{
+			if (!_isInitialized)
+			{
+				Initialize();
+			}
+
+			if (widgetType == null || !widgetType.IsSubclassOf(typeof(WidgetBase)))
+			{
+				Debug.LogError(string.Format(NotATypeError, widgetType?.FullName ?? "null", typeof(WidgetBase)), this);
+				return null;
+			}
+
+			if (!_widgets.TryGetValue(widgetType, out WidgetBase val))
+			{
+				Debug.LogError(string.Format(NoWidgetError, name, widgetType), this);
+				return null;
+			}
+
+			if (!val)
+			{
+				Debug.LogError(string.Format(WidgetIsNullError, name, widgetType), this);
+				return null;
+			}
+
+			return val;
 		}
 
 		private void Initialize()

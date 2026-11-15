@@ -39,10 +39,15 @@ parameters can be introduced in the implementation.
 
 `UIManager` also provides access to dialogs and widgets.
 
+When the type is only known at runtime, use the overloads that take a `Type`, such as
+`GetScreen(typeof(MainMenuScreen))`. They return `ScreenBase`, `DialogBase` or `WidgetBase`,
+so cast the result to reach members of your own class. Both versions need the exact type,
+not a base class or an interface. Otherwise they log an error and return `null`.
+
 ### Screen
 
 Represents a single screen in the UI. A single screen can have multiple panels. Only
-child classes can have access to panels.
+child classes can have access to panels, through `GetPanel<T>()` or `GetPanel(Type)`.
 
 Screen transitions run one at a time, so the last `Show()` or `Hide()` always decides what
 is left on screen. Do not await another screen's `Show()` or `Hide()` from a `ShowAsync` or
