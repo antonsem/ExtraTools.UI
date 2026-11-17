@@ -72,9 +72,14 @@ Represents a pop-up dialog window. Useful to inform the user or to ask an immedi
 question (e.g. "Are you sure you want to quit?"). Dialogs can stack up or be shown one at
 a time.
 
-Requires a text and an answer option to set up.
+Requires a text to set up. Answers are optional.
 
 A dialog closes when one of its answers is clicked. To close it from code, call `Hide`.
+
+Leaving out the answers shows a single "OK" button. Pass an empty array
+(`Array.Empty<DialogAnswer>()`) for a dialog without buttons, for example a "Press any key"
+prompt. It can only be closed with `Hide`, nothing is selected while it is open, and it
+ignores Cancel unless you override `OnCancel`.
 
 ### Widget
 
