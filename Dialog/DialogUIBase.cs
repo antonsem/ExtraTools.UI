@@ -26,10 +26,10 @@ namespace ExtraTools.UI.Dialog
 
 		private CanvasGroup _canvasGroup;
 
+		private int _answerCount;
 		private int _defaultIndex = -1;
 
-		// Only valid after Setup, which always activates at least one button.
-		internal Selectable DefaultAnswer => _buttons.Count > 0 ? _buttons[Mathf.Max(_defaultIndex, 0)].Item1 : null;
+		internal Selectable DefaultAnswer => _answerCount > 0 ? _buttons[Mathf.Max(_defaultIndex, 0)].Item1 : null;
 
 		[PublicAPI]
 		protected virtual void OnDisable()
@@ -63,7 +63,7 @@ namespace ExtraTools.UI.Dialog
 			ClearButtons();
 			_message.text = text;
 
-			if (answers?.Length > 0)
+			if (answers != null)
 			{
 				SetupAnswers(answers);
 			}
@@ -79,6 +79,8 @@ namespace ExtraTools.UI.Dialog
 			{
 				AddButtons(answers.Count - _buttons.Count);
 			}
+
+			_answerCount = answers.Count;
 
 			for (int i = 0; i < answers.Count; i++)
 			{
@@ -116,6 +118,7 @@ namespace ExtraTools.UI.Dialog
 
 		private void ClearButtons()
 		{
+			_answerCount = 0;
 			_defaultIndex = -1;
 
 			foreach ((Button button, TMP_Text _) in _buttons)
