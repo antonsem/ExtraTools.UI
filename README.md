@@ -131,6 +131,8 @@ that case. It only restores elements under that manager that can still be used, 
 does nothing in scenes without focusable UI and works with several managers at once. It
 also undoes `EventSystem.current.SetSelectedGameObject(null)` from your own code while
 that element is still usable, so leave it off for managers where that is intended.
+When the selected element is deactivated and the last one can't be used either, focus goes
+to the top dialog's default answer, or to the active screen's `FirstSelected`.
 
 ### Automatic Setup
 

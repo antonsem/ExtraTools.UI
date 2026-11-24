@@ -471,9 +471,16 @@ namespace ExtraTools.UI.Base
 			{
 				Select(previousSelection);
 			}
-			else if (_activeDialogs.Count > 0)
+			else
 			{
-				// The previous selection was inside a dialog that has closed since, so the top dialog takes focus.
+				SelectFocusTarget();
+			}
+		}
+
+		private void SelectFocusTarget()
+		{
+			if (_activeDialogs.Count > 0)
+			{
 				Select(_activeDialogs[^1].DefaultAnswer);
 			}
 			else if (ActiveScreen)
@@ -499,9 +506,14 @@ namespace ExtraTools.UI.Base
 		{
 			GameObject selection = GetSelection();
 
-			if (selection)
+			if (selection && selection.activeInHierarchy)
 			{
 				_lastSelection = selection.transform.IsChildOf(transform) ? selection : null;
+				return;
+			}
+
+			if (selection && !selection.transform.IsChildOf(transform))
+			{
 				return;
 			}
 
@@ -509,9 +521,10 @@ namespace ExtraTools.UI.Base
 			{
 				Select(_lastSelection);
 			}
-			else
+			else if (_lastSelection || selection)
 			{
 				_lastSelection = null;
+				SelectFocusTarget();
 			}
 		}
 
